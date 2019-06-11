@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import fs from 'fs';
 import { Spinner } from 'clui';
 import { Client } from 'ssh2';
+import { Observable } from 'rxjs';
 
 const conn = new Client();
 
@@ -37,31 +38,38 @@ export function connect(connectionParams: ConnectionParams) {
   });
 }
 
-export function exec(command: string) {
+export function exec(command: string): Observable<string> {
   const status = new Spinner('Executings command..., please wait...');
   status.start();
-  return new Promise((resolve, reject) => {
+  return new Observable(observer => {
     conn.exec(command, (err: Error, stream: any) => {
       if (err) {
         status.stop();
-        return reject(err);
+        return observer.error(err);
       }
-      stream
-        .on('close', (code: any, signal: any) => {
-          console.log(
-            chalk.cyan(`Stream :: close :: code: ${code} signal: ${signal}`)
-          );
-        })
-        .on('data', (data: any) => {
-          status.stop();
-          console.log(chalk.green(`STDOUT: ${data}`));
-          resolve(data);
-        })
-        .stderr.on('data', (data: any) => {
-          status.stop();
-          console.log(chalk.red(`STDERR: ${data}`));
-          reject();
-        });
+
+      stream.stderr.on('data', (data: Buffer) => {
+        status.stop();
+        observer.next(data.toString());
+      });
+
+      stream.stdout.on('data', (data: Buffer) => {
+        status.stop();
+        observer.next(data.toString());
+      });
+
+      stream.on('close', (code: any, signal: any) => {
+        status.stop();
+        if (code === 0) {
+          console.log(chalk.green(`Command ${chalk.cyan(command)} Completed!`));
+        } else {
+          console.log(chalk.red(`Command ${chalk.cyan(command)} Failed!`));
+        }
+        console.log(
+          chalk.cyan(`Stream :: close :: code: ${code} signal: ${signal}`)
+        );
+        observer.complete();
+      });
     });
   });
 }
@@ -70,7 +78,7 @@ export function end() {
   return new Promise(resolve => {
     conn.end();
     conn.on('end', () => {
-      resolve()
-    })
-  })
+      resolve();
+    });
+  });
 }
