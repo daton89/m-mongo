@@ -8,7 +8,7 @@ import { Cluster } from './cluster';
 import * as inquirer from './inquirer';
 import conf from './conf';
 import * as ssh from './ssh';
-import spawn from './spawn';
+// import spawn from './spawn';
 // tslint:disable-next-line: no-duplicate-imports
 // import { ConnectionParams } from './ssh';
 
@@ -41,7 +41,7 @@ export async function setMongoCluster() {
   return cluster;
 }
 
-async function listContainersOverSSH(): Promise<string[]> {
+export async function listContainersOverSSH(): Promise<string[]> {
   return new Promise(resolve => {
     // get list of running containers
     const command = `docker ps --format '"{{.Names}}"',`;
@@ -65,7 +65,6 @@ async function listDatabasesFromContainer(
   return new Promise(resolve => {
     // using mongo with docker
     const command = `docker exec ${containerName} mongo --quiet --eval "db.adminCommand('listDatabases')"`;
-    console.log('command ::', command);
     ssh.exec(command).subscribe(
       data => {
         const { databases } = JSON.parse(data);
@@ -155,7 +154,7 @@ async function listDatabases(
   return Promise.resolve([]);
 }
 
-async function getCluster() {
+export async function getCluster() {
   const clusters = conf.get('clusters');
 
   if (!clusters.length) {
@@ -169,115 +168,10 @@ async function getCluster() {
   return clusters.find((c: Cluster) => c.name === clusterName);
 }
 
-async function getDatabase(cluster: Cluster, containerName?: string) {
+export async function getDatabase(cluster: Cluster, containerName?: string) {
   const databases: object[] = await listDatabases(cluster, containerName);
 
   const { database } = await inquirer.selectDatabase(databases);
 
   return database;
-}
-
-async function dumpOverSsh(cluster: Cluster) {
-  // const cluster: Cluster = await getCluster();
-
-  await ssh.connect(cluster.sshConnection);
-
-  const containers: string[] = await listContainersOverSSH();
-
-  const { containerName } = await inquirer.selectContainer(containers);
-
-  const database = await getDatabase(cluster, containerName);
-
-  const { host, ssl, username, password, authenticationDatabase } = cluster;
-
-  const command = [
-    'mongodump',
-    host ? `--host ${host}` : '',
-    ssl === 'Yes' ? '--ssl' : '',
-    username ? `--username ${username}` : '',
-    password ? `--password ${password}` : '',
-    authenticationDatabase
-      ? `--authenticationDatabase ${authenticationDatabase}`
-      : '',
-    database ? `--db ${database}` : ''
-    // storagePath
-  ];
-
-  if (cluster.runningOn === 'Docker Container') {
-    return new Promise(resolve => {
-      // using mongo with docker
-      const dockerExec = ['docker', 'exec', containerName, ...command];
-      ssh.exec(dockerExec.join(' ')).subscribe(
-        data => {
-          console.log(chalk.green(`STDOUT: ${data}`));
-        },
-        data => {
-          console.log(chalk.red(`STDERR: ${data}`));
-        },
-        async () => {
-          // await ssh.end();
-          resolve();
-        }
-      );
-    });
-    // TODO: copy dumped files from remote
-  }
-}
-
-async function dump(cluster: Cluster) {
-  const database = await getDatabase(cluster);
-
-  const { storagePath } = await inquirer.askStoragePath();
-  // We need the mongodump bin into our path
-  // TODO: check mongobump bin availability otherwise download it
-  // https://www.mongodb.com/download-center/community
-  return new Promise(resolve => {
-    const command = 'mongodump';
-
-    const args = [
-      '--host',
-      cluster.host,
-      cluster.ssl === 'Yes' ? '--ssl' : '',
-      '--username',
-      cluster.username,
-      '--password',
-      cluster.password,
-      '--authenticationDatabase',
-      cluster.authenticationDatabase,
-      '--db',
-      database,
-      '--out',
-      storagePath || conf.get('defaultStoragePath')
-    ];
-
-    console.log(
-      chalk.yellow(
-        `Watchout! I don't know why, but mongodump normal behavior is to stream output to the STDERR! `
-      )
-    );
-
-    spawn(command, args).subscribe(
-      data => {
-        console.log(data);
-      },
-      err => {
-        console.log(err);
-      },
-      () => {
-        resolve();
-      }
-    );
-  });
-}
-
-export async function execDump() {
-  const cluster: Cluster = await getCluster();
-
-  if (cluster.requiresSSH === 'Yes') {
-    if (cluster.runningOn === 'Docker Container') {
-      await dumpOverSsh(cluster);
-    }
-  } else {
-    await dump(cluster);
-  }
 }
