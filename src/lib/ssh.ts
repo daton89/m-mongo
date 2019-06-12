@@ -78,6 +78,7 @@ export function end() {
   return new Promise(resolve => {
     conn.end();
     conn.on('end', () => {
+      console.log(chalk.cyan('SSH Client :: ended'));
       resolve();
     });
   });
