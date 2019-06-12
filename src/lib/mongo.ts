@@ -224,7 +224,10 @@ async function dumpOverSsh(cluster: Cluster) {
   }
 }
 
-function dump(cluster: Cluster, database: string, storagePath: string) {
+async function dump(cluster: Cluster) {
+  const database = await getDatabase(cluster);
+
+  const { storagePath } = await inquirer.askStoragePath();
   // We need the mongodump bin into our path
   // TODO: check mongobump bin availability otherwise download it
   // https://www.mongodb.com/download-center/community
@@ -244,7 +247,7 @@ function dump(cluster: Cluster, database: string, storagePath: string) {
       '--db',
       database,
       '--out',
-      storagePath
+      storagePath || conf.get('defaultStoragePath')
     ];
 
     console.log(
@@ -275,15 +278,6 @@ export async function execDump() {
       await dumpOverSsh(cluster);
     }
   } else {
-    const database = await getDatabase(cluster);
-
-    const { storagePath } = await inquirer.askStoragePath();
-
-    await dump(
-      cluster,
-      database,
-      // TODO: check that the path exists and is correct
-      storagePath || conf.get('defaultStoragePath')
-    );
+    await dump(cluster);
   }
 }
