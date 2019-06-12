@@ -14,7 +14,6 @@ import {
   SET_STORAGE_PATH,
   ADD_SSH_CONNECTION,
   RUN_SSH_COMMAND,
-  DUMP_OVER_SSH,
   EXIT
 } from './lib/actions';
 import * as mongo from './lib/mongo';
@@ -53,15 +52,13 @@ const run = async () => {
       case DUMP:
         await mongo.execDump();
         break;
-      case DUMP_OVER_SSH:
-        await mongo.dumpOverSsh();
-        break;
       case EXIT:
         clear();
         console.log(chalk.cyan(`Bye bye!`));
         process.exit();
         break;
       default:
+        console.log(chalk.yellow(`action ${choise.action} not found!`))
         await restart();
         break;
     }
