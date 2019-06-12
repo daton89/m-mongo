@@ -10,7 +10,7 @@ import conf from './conf';
 import * as ssh from './ssh';
 import spawn from './spawn';
 // tslint:disable-next-line: no-duplicate-imports
-import { ConnectionParams } from './ssh';
+// import { ConnectionParams } from './ssh';
 
 export function showClusters() {
   const clusters: Cluster[] = conf.get('clusters');
@@ -59,41 +59,48 @@ async function listContainersOverSSH(): Promise<string[]> {
   });
 }
 
-async function listDatabasesFromContainer(containerName: string) {
+async function listDatabasesFromContainer(
+  containerName: string
+): Promise<string[]> {
   return new Promise(resolve => {
     // using mongo with docker
-    const dockerExec = `docker exec ${containerName} mongo --quiet --eval "db.adminCommand('listDatabases')"`;
-    ssh.exec(dockerExec).subscribe(
+    const command = `docker exec ${containerName} mongo --quiet --eval "db.adminCommand('listDatabases')"`;
+    console.log('command ::', command);
+    ssh.exec(command).subscribe(
       data => {
         const { databases } = JSON.parse(data);
         resolve(databases);
       },
       err => {
         console.log(chalk.red(`STDERR :: ${err}`));
-      },
-      async () => {
-        await ssh.end();
       }
+      // async () => {
+      //   await ssh.end();
+      // }
     );
   });
 }
 
-async function listDatabasesWithMongoShellOverSSH(
-  cluster: Cluster,
-  connection: ConnectionParams
-) {
-  await ssh.connect(connection);
-
-  const containers: string[] = await listContainersOverSSH();
-
-  const { containerName } = await inquirer.selectContainer(containers);
-
-  if (cluster.runningOn === 'Docker Container') {
-    const databases = await listDatabasesFromContainer(containerName)
-  }
+async function listDatabasesInVMViaSSH(): Promise<object[]> {
+  return new Promise(resolve => {
+    // using mongo with docker
+    const command = `mongo --quiet --eval "db.adminCommand('listDatabases')"`;
+    ssh.exec(command).subscribe(
+      data => {
+        const { databases } = JSON.parse(data);
+        resolve(databases);
+      },
+      err => {
+        console.log(chalk.red(`STDERR :: ${err}`));
+      }
+      // async () => {
+      //   await ssh.end();
+      // }
+    );
+  });
 }
 
-function listDatabasesWithMongoClient(cluster: Cluster) {
+function listDatabasesWithMongoClient(cluster: Cluster): Promise<object[]> {
   const status = new Spinner('Connecting to the cluster..., please wait...');
   status.start();
   return new Promise((resolve, reject) => {
@@ -119,21 +126,33 @@ function listDatabasesWithMongoClient(cluster: Cluster) {
   });
 }
 
-async function listDatabases(cluster: Cluster, connection?: ConnectionParams) {
+async function listDatabases(
+  cluster: Cluster,
+  containerName?: string
+): Promise<object[]> {
   if (cluster.accessMethod === 'MongoClient') {
     const databases = await listDatabasesWithMongoClient(cluster);
     return databases;
   }
 
   if (cluster.accessMethod === 'MongoShell') {
-    if (cluster.requiresSSH === 'Yes' && connection) {
-      const databases = await listDatabasesWithMongoShellOverSSH(
-        cluster,
-        connection
-      );
-      return databases;
+    if (cluster.requiresSSH === 'Yes') {
+      await ssh.connect(cluster.sshConnection);
+
+      if (cluster.runningOn === 'Docker Container' && containerName) {
+        const databases = await listDatabasesFromContainer(containerName);
+        return databases.map(name => ({
+          name
+        }));
+      }
+
+      if (cluster.runningOn === 'Virtual Machine') {
+        const databases = await listDatabasesInVMViaSSH();
+        return databases;
+      }
     }
   }
+  return Promise.resolve([]);
 }
 
 async function getCluster() {
@@ -150,36 +169,24 @@ async function getCluster() {
   return clusters.find((c: Cluster) => c.name === clusterName);
 }
 
-async function getDatabase(connection?: ConnectionParams) {
-  const cluster: Cluster = await getCluster();
-
-  if (!cluster) throw new Error('Cluster not found');
-
-  const databases = await listDatabases(cluster, connection);
+async function getDatabase(cluster: Cluster, containerName?: string) {
+  const databases: object[] = await listDatabases(cluster, containerName);
 
   const { database } = await inquirer.selectDatabase(databases);
 
-  const { storagePath } = await inquirer.askStoragePath();
-
-  return { cluster, database, storagePath };
+  return database;
 }
 
-export async function dumpOverSsh() {
-  const connections = conf.get('sshConnections') || [];
-
-  const { connectionHost } = await inquirer.selectSshConnection(connections);
-
-  const connection = connections.find(
-    (conn: ssh.ConnectionParams) => conn.host === connectionHost
-  );
-
-  const { cluster, database /* , storagePath */ } = await getDatabase(
-    connection
-  );
-
+async function dumpOverSsh(cluster: Cluster) {
   // const cluster: Cluster = await getCluster();
 
-  // const { database } = await inquirer.askDatabase();
+  await ssh.connect(cluster.sshConnection);
+
+  const containers: string[] = await listContainersOverSSH();
+
+  const { containerName } = await inquirer.selectContainer(containers);
+
+  const database = await getDatabase(cluster, containerName);
 
   const { host, ssl, username, password, authenticationDatabase } = cluster;
 
@@ -196,30 +203,24 @@ export async function dumpOverSsh() {
     // storagePath
   ];
 
-  if (cluster.requiresSSH === 'Yes') {
-    if (cluster.runningOn === 'Docker Container') {
-      await ssh.connect(connection);
-
-      // const { containerName } = await inquirer.askContainerName();
-      return new Promise(resolve => {
-        // using mongo with docker
-        const dockerExec = ['docker', 'exec', containerName, ...command];
-        ssh.exec(dockerExec.join(' ')).subscribe(
-          data => {
-            console.log(chalk.green(`STDOUT: ${data}`));
-          },
-          data => {
-            console.log(chalk.red(`STDERR: ${data}`));
-            console.log(chalk.red(`I'm sorry... something went wrong...`));
-          },
-          async () => {
-            await ssh.end();
-            resolve();
-          }
-        );
-      });
-      // TODO: copy dumped files from remote
-    }
+  if (cluster.runningOn === 'Docker Container') {
+    return new Promise(resolve => {
+      // using mongo with docker
+      const dockerExec = ['docker', 'exec', containerName, ...command];
+      ssh.exec(dockerExec.join(' ')).subscribe(
+        data => {
+          console.log(chalk.green(`STDOUT: ${data}`));
+        },
+        data => {
+          console.log(chalk.red(`STDERR: ${data}`));
+        },
+        async () => {
+          // await ssh.end();
+          resolve();
+        }
+      );
+    });
+    // TODO: copy dumped files from remote
   }
 }
 
@@ -267,13 +268,22 @@ function dump(cluster: Cluster, database: string, storagePath: string) {
 }
 
 export async function execDump() {
-  const { cluster, database, storagePath } = await getDatabase();
+  const cluster: Cluster = await getCluster();
 
-  const dumped = await dump(
-    cluster,
-    database,
-    storagePath || conf.get('defaultStoragePath')
-  );
+  if (cluster.requiresSSH === 'Yes') {
+    if (cluster.runningOn === 'Docker Container') {
+      await dumpOverSsh(cluster);
+    }
+  } else {
+    const database = await getDatabase(cluster);
 
-  return dumped;
+    const { storagePath } = await inquirer.askStoragePath();
+
+    await dump(
+      cluster,
+      database,
+      // TODO: check that the path exists and is correct
+      storagePath || conf.get('defaultStoragePath')
+    );
+  }
 }
