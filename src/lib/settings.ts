@@ -12,7 +12,7 @@ export async function showMainMenu() {
 export async function setStoragePath() {
   const storagePath = await inquirer.askStoragePath();
 
-  conf.set('defaultStoragePath', storagePath);
+  conf.set('settings.defaultStoragePath', storagePath);
 
   return storagePath;
 }
