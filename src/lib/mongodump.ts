@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import os from 'os';
 
 import { Cluster } from './cluster';
 import * as ssh from './ssh';
@@ -78,14 +79,19 @@ async function dumpOverSsh(cluster: Cluster) {
       // copy dumped files from container to host
       const folderOnTheHost = '~/data-db/mongodumps';
       await dockerCp(containerName, folderOnTheHost);
+
       // copy dumped files from host to localhost
       const { sshConnection } = cluster;
       const { storagePath } = await inquirer.askStoragePath();
+      const src = `${sshConnection.username}@${sshConnection.host}:${folderOnTheHost}`;
+      // tslint:disable-next-line: no-let
+      let dest = storagePath;
+      if (os.platform() === 'win32') {
+        dest = storagePath.replace('C:', '\\cygdrive\\c');
+      }
       try {
-        await rsync.exec(
-          `${sshConnection.username}@${sshConnection.host}:${folderOnTheHost}`,
-          storagePath
-        );
+        // rsync -hvrPt -e "ssh -i C:\Users\tonyd\.ssh\id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" -r root@example.com:~/data-db/mongodumps ./
+        await rsync.exec(src, dest, sshConnection.privateKey);
         resolve();
       } catch (err) {
         reject(err);

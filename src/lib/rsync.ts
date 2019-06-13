@@ -6,11 +6,18 @@ import chalk from 'chalk';
  * @param src : string /path/to/source
  * @param dest : string server:/path/to/dest
  */
-export function exec(src: string, dest: string, flags?: string) {
+export function exec(
+  src: string,
+  dest: string,
+  privateKey: string,
+  flags?: string
+) {
   return new Promise((resolve, reject) => {
     // Build the command
     const rsync = new Rsync()
-      // .shell('ssh')
+      .executable(
+        `rsync -e "ssh -i ${privateKey} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"`
+      )
       .flags(flags || 'hvrPt')
       .source(src)
       .destination(dest);
@@ -19,17 +26,14 @@ export function exec(src: string, dest: string, flags?: string) {
     rsync.execute((err: Error, code: number, cmd: string) => {
       if (err) {
         console.log(chalk.red(cmd));
-        console.log(chalk.red(err.toString()));
-        console.log(chalk.red(`${code}`));
         return reject(chalk.red(err.toString()));
       }
-      resolve(
-        chalk.green(
-          `Command ${chalk.cyan(cmd)} exited with code ${chalk.cyan(
-            code.toString()
-          )}`
+      console.log(
+        chalk[code === 0 ? 'green' : 'red'](
+          `Command ${chalk.cyan(cmd)} exited with code ${chalk.cyan(`${code}`)}`
         )
       );
+      resolve();
     });
   });
 }
