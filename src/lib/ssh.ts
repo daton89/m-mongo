@@ -10,7 +10,7 @@ export interface ConnectionParams {
   host: string;
   port: number;
   username: string;
-  privateKey: string | Buffer;
+  privateKey: string;
 }
 
 export function connect(connectionParams: ConnectionParams) {
