@@ -18,6 +18,7 @@ import {
 } from './lib/actions';
 import * as mongo from './lib/mongo';
 import * as settings from './lib/settings';
+import * as mongodump from './lib/mongodump';
 
 clear();
 console.log(
@@ -50,7 +51,7 @@ const run = async () => {
         mongo.showClusters();
         break;
       case DUMP:
-        await mongo.execDump();
+        await mongodump.exec();
         break;
       case EXIT:
         clear();
@@ -58,7 +59,7 @@ const run = async () => {
         process.exit();
         break;
       default:
-        console.log(chalk.yellow(`action ${choise.action} not found!`))
+        console.log(chalk.yellow(`action ${choise.action} not found!`));
         await restart();
         break;
     }
