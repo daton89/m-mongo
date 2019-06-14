@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 import chalk from 'chalk';
 import clear from 'clear';
 import figlet from 'figlet';
@@ -14,11 +15,13 @@ import {
   SET_STORAGE_PATH,
   ADD_SSH_CONNECTION,
   RUN_SSH_COMMAND,
-  EXIT
+  EXIT,
+  RESTORE
 } from './lib/actions';
 import * as mongo from './lib/mongo';
 import * as settings from './lib/settings';
 import * as mongodump from './lib/mongodump';
+import * as mongorestore from './lib/mongorestore';
 
 clear();
 console.log(
@@ -53,9 +56,11 @@ const run = async () => {
       case DUMP:
         await mongodump.exec();
         break;
+      case RESTORE:
+        await mongorestore.start();
+        break;
       case EXIT:
-        clear();
-        console.log(chalk.cyan(`Bye bye!`));
+        console.log(chalk.cyan(`Bye bye! ${process.env.USERNAME}`));
         process.exit();
         break;
       default:
