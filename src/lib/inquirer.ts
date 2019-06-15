@@ -261,3 +261,16 @@ export function selectContainer(containers: string[]) {
   ];
   return inquirer.prompt(questions);
 }
+
+export function selectDump(dumps: string[]) {
+  const questions: Question[] = [
+    {
+      type: 'list',
+      name: 'dump',
+      message: 'From which dump?',
+      default: dumps[0],
+      choices: dumps
+    }
+  ];
+  return inquirer.prompt(questions);
+}
