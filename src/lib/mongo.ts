@@ -1,8 +1,11 @@
 import { Spinner } from 'clui';
 import chalk from 'chalk';
 import { MongoClient } from 'mongodb';
+import debug from 'debug';
 // import fs from 'fs';
 // import path from 'path';
+
+const dd = debug('mongo');
 
 import { Cluster } from './cluster';
 import * as inquirer from './inquirer';
@@ -48,10 +51,11 @@ export async function listContainersOverSSH(): Promise<string[]> {
     ssh.exec(command).subscribe(
       data => {
         const containers: string[] = JSON.parse(`[${data.slice(0, -2)}]`);
+        dd('listContainersOverSSH %o', containers);
         resolve(containers);
       },
       async err => {
-        console.log(chalk.red(`STDERR :: ${err}`));
+        dd('listContainersOverSSH %o', chalk.red(`STDERR :: ${err}`));
         const { containerName } = await inquirer.askContainerName();
         resolve([containerName]);
       }
@@ -68,10 +72,11 @@ async function listDatabasesFromContainer(
     ssh.exec(command).subscribe(
       data => {
         const { databases } = JSON.parse(data);
+        dd('listDatabasesFromContainer %o', databases);
         resolve(databases);
       },
       err => {
-        console.log(chalk.red(`STDERR :: ${err}`));
+        dd('listDatabasesFromContainer %o', chalk.red(`STDERR :: ${err}`));
       }
       // async () => {
       //   await ssh.end();
@@ -87,10 +92,11 @@ async function listDatabasesInVMViaSSH(): Promise<object[]> {
     ssh.exec(command).subscribe(
       data => {
         const { databases } = JSON.parse(data);
+        dd('listDatabasesInVMViaSSH %o', databases);
         resolve(databases);
       },
       err => {
-        console.log(chalk.red(`STDERR :: ${err}`));
+        dd('listDatabasesInVMViaSSH %o', chalk.red(`STDERR :: ${err}`));
       }
       // async () => {
       //   await ssh.end();
@@ -107,7 +113,10 @@ function listDatabasesWithMongoClient(cluster: Cluster): Promise<object[]> {
     // Connect using MongoClient
     const client = new MongoClient(uri, { useNewUrlParser: true });
     client.connect((err: Error) => {
-      if (err) return reject(err);
+      if (err) {
+        dd('listDatabasesWithMongoClient %o', err);
+        return reject(err);
+      }
       // Use the admin database for the operation
       const adminDb = client.db('admin');
 
@@ -118,6 +127,7 @@ function listDatabasesWithMongoClient(cluster: Cluster): Promise<object[]> {
           if (e) return reject(err);
           client.close();
           status.stop();
+          dd('listDatabasesWithMongoClient %o', result.databases);
           resolve(result.databases);
         }
       );
@@ -161,17 +171,27 @@ export async function getCluster() {
     const newCluster = setMongoCluster();
 
     clusters.push(newCluster);
+
+    dd('getCluster %o', newCluster);
+
+    return newCluster;
   }
 
   const { clusterName } = await inquirer.selectCluster(clusters);
 
-  return clusters.find((c: Cluster) => c.name === clusterName);
+  const cluster = clusters.find((c: Cluster) => c.name === clusterName);
+
+  dd('getCluster %o', cluster);
+
+  return cluster;
 }
 
 export async function getDatabase(cluster: Cluster, containerName?: string) {
   const databases: object[] = await listDatabases(cluster, containerName);
 
   const { database } = await inquirer.selectDatabase(databases);
+
+  dd('getDatabase %o', database);
 
   return database;
 }

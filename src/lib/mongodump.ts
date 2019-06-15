@@ -10,35 +10,37 @@ import * as mongo from './mongo';
 import * as rsync from './rsync';
 import * as folder from './folder';
 
+import debug from 'debug';
+const dd = debug('dump');
+
+// copy dumped files from container to host
 function dockerCp(containerName: string, folderOnTheHost: string) {
   return new Promise(resolve => {
-    // copy dumped files from container to host
-    ssh
-      .exec(
-        `mkdir -p ${folderOnTheHost} ; docker cp ${containerName}:./dump ${folderOnTheHost}`
-      )
-      .subscribe(
-        data => {
-          console.log(chalk.green(`STDOUT: ${data}`));
-        },
-        data => {
-          console.log(chalk.red(`STDERR: ${data}`));
-        },
-        async () => {
-          resolve();
-        }
-      );
+    const command = `mkdir -p ${folderOnTheHost} ; docker cp ${containerName}:./dump ${folderOnTheHost}`;
+    dd('dockerCp %o', command);
+    ssh.exec(command).subscribe(
+      data => {
+        dd('dockerCp %o', chalk.green(`STDOUT: ${data}`));
+      },
+      data => {
+        dd('dockerCp %o', chalk.red(`STDERR: ${data}`));
+      },
+      async () => {
+        resolve();
+      }
+    );
   });
 }
 
 function dockerExec(command: string) {
   return new Promise(resolve => {
+    dd('dockerExec %o', command);
     ssh.exec(command).subscribe(
       data => {
-        console.log(chalk.green(`STDOUT: ${data}`));
+        dd('dockerExec %o', chalk.green(`STDOUT: ${data}`));
       },
       data => {
-        console.log(chalk.red(`STDERR: ${data}`));
+        dd('dockerExec %o', chalk.red(`STDERR: ${data}`));
       },
       async () => {
         resolve();
@@ -108,6 +110,7 @@ async function dumpOverSsh(cluster: Cluster) {
       let dest = storagePath;
       if (os.platform() === 'win32') {
         dest = storagePath.replace('C:', '\\cygdrive\\c');
+        dd('detected win32 platform setting dest to %o', dest);
       }
       try {
         // rsync -hvrPt -e "ssh -i C:\Users\tonyd\.ssh\id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" -r root@example.com:~/data-db/mongodumps ./
@@ -131,20 +134,20 @@ async function dump(cluster: Cluster) {
   return new Promise(resolve => {
     const command = 'mongodump';
 
+    const { host, ssl, username, password, authenticationDatabase } = cluster;
+
+    const out = storagePath || conf.get('settings.defaultStoragePath');
+
     const args = [
-      '--host',
-      cluster.host,
-      cluster.ssl === 'Yes' ? '--ssl' : '',
-      '--username',
-      cluster.username,
-      '--password',
-      cluster.password,
-      '--authenticationDatabase',
-      cluster.authenticationDatabase,
-      '--db',
-      database,
-      '--out',
-      storagePath || conf.get('settings.defaultStoragePath')
+      host ? `--host ${host}` : '',
+      ssl === 'Yes' ? '--ssl' : '',
+      username ? `--username ${username}` : '',
+      password ? `--password ${password}` : '',
+      authenticationDatabase
+        ? `--authenticationDatabase ${authenticationDatabase}`
+        : '',
+      database ? `--db${database}` : '',
+      out ? `--out ${out}` : ''
     ];
 
     console.log(
@@ -155,10 +158,10 @@ async function dump(cluster: Cluster) {
 
     spawn(command, args).subscribe(
       data => {
-        console.log(data);
+        dd('spawn %o', data);
       },
       err => {
-        console.log(err);
+        dd('spawn err %o', err);
       },
       () => {
         setDump(out);
