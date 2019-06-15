@@ -8,6 +8,7 @@ import conf from './conf';
 import spawn from './spawn';
 import * as mongo from './mongo';
 import * as rsync from './rsync';
+import * as folder from './folder';
 
 function dockerCp(containerName: string, folderOnTheHost: string) {
   return new Promise(resolve => {
@@ -44,6 +45,25 @@ function dockerExec(command: string) {
       }
     );
   });
+}
+
+export function getDumps() {
+  const dumps = conf.get('dumps') || [];
+
+  return dumps
+    .map(async (storagePath: string) => {
+      const folders = await folder.ls(storagePath);
+      dd('getDumps storagePath %o', storagePath);
+      dd('getDumps folders', folders);
+      return folders;
+    })
+    .flat();
+}
+
+function setDump(storagePath: string) {
+  const dumps = conf.get('dumps') || [];
+
+  conf.set('dumps', [storagePath, ...dumps]);
 }
 
 async function dumpOverSsh(cluster: Cluster) {
@@ -92,6 +112,7 @@ async function dumpOverSsh(cluster: Cluster) {
       try {
         // rsync -hvrPt -e "ssh -i C:\Users\tonyd\.ssh\id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" -r root@example.com:~/data-db/mongodumps ./
         await rsync.exec(src, dest, sshConnection.privateKey);
+        setDump(storagePath);
         resolve();
       } catch (err) {
         reject(err);
@@ -140,6 +161,7 @@ async function dump(cluster: Cluster) {
         console.log(err);
       },
       () => {
+        setDump(out);
         resolve();
       }
     );
