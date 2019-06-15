@@ -1,5 +1,8 @@
 import Rsync from 'rsync';
-import chalk from 'chalk';
+import debug from 'debug';
+import os from 'os';
+
+const dd = debug('rsync');
 
 /**
  * rsync exec
@@ -20,20 +23,24 @@ export function exec(
       )
       .flags(flags || 'hvrPt')
       .source(src)
-      .destination(dest);
+      .destination(
+        os.platform() === 'win32' ? dest.replace('C:', '\\cygdrive\\c') : dest
+      );
+
+    dd('command %o', rsync.command());
 
     // Execute the command
     rsync.execute((err: Error, code: number, cmd: string) => {
       if (err) {
-        console.log(chalk.red(cmd));
-        return reject(chalk.red(err.toString()));
+        dd('err %o', err);
+        return reject(err);
       }
-      console.log(
-        chalk[code === 0 ? 'green' : 'red'](
-          `Command ${chalk.cyan(cmd)} exited with code ${chalk.cyan(`${code}`)}`
-        )
-      );
-      resolve();
+      dd(`Command ${cmd} exited with code ${code}`);
+      if (code === 0) {
+        resolve();
+      } else {
+        reject();
+      }
     });
   });
 }
