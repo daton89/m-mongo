@@ -1,7 +1,9 @@
 import { spawn } from 'child_process';
-import chalk from 'chalk';
 import { Observable } from 'rxjs';
 import { Spinner } from 'clui';
+import debug from 'debug';
+
+const dd = debug('spawn');
 
 export default function Spawn(
   command: string,
@@ -10,25 +12,27 @@ export default function Spawn(
   const status = new Spinner('Dumping..., please wait...');
   status.start();
 
+  dd('full command %o', `${command} ${args.join(' ')}`);
+
   return new Observable(observer => {
     const spawning = spawn(command, args);
 
     spawning.stdout.on('data', data => {
       status.stop();
-      observer.next(chalk.green(`STDOUT :: ${data.toString()}`));
+      observer.next(`STDOUT :: ${data.toString()}`);
     });
 
     spawning.stderr.on('data', data => {
       status.stop();
-      observer.next(chalk.red(`STDERR :: ${data.toString()}`));
+      observer.next(`STDERR :: ${data.toString()}`);
     });
 
     spawning.on('close', code => {
       status.stop();
       if (code === 0) {
-        observer.next(chalk.green(`Command ${chalk.cyan(command)} Completed!`));
+        observer.next(`Command ${command} Completed!`);
       } else {
-        observer.error(chalk.red(`Command ${chalk.cyan(command)} Failed!`));
+        observer.error(`Command ${command} Failed!`);
       }
       observer.complete();
     });
