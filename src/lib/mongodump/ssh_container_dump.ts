@@ -1,5 +1,3 @@
-import chalk from 'chalk';
-import os from 'os';
 import debug from 'debug';
 
 import * as ssh from '../ssh';

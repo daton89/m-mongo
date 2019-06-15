@@ -54,7 +54,7 @@ const run = async () => {
         mongo.showClusters();
         break;
       case DUMP:
-        await mongodump.exec();
+        await mongodump.start();
         break;
       case RESTORE:
         await mongorestore.start();

@@ -4,25 +4,28 @@ import debug from 'debug';
 import { Cluster } from '../cluster';
 import Restore from './restore';
 import RestoreContainer from './restore_container';
-import * as mongodump from '../mongodump';
 import * as mongo from '../mongo';
+import Dump from '../mongodump/dump';
+import * as mainDump from '../mongodump';
 
-const dd = debug('restore:start')
+const dd = debug('restore:start');
 
 export async function start() {
+  const cluster: Cluster = await mongo.getCluster();
+
+  const mongodump = new Dump(cluster);
+
   const dumps: string[] = mongodump.getDumps();
 
   dd('dumps :: %o', dumps);
 
   if (!dumps.length) {
     console.log(chalk.yellow(`You don't have any dump yet! Let's create one!`));
-    await mongodump.exec();
-    console.log(chalk.green(`Super! We have a dump!`));
+    await mainDump.start();
+    console.log(chalk.green(`Super! We now have a dump!`));
     console.log(chalk.yellow(`Let's start back from where we left!`));
     console.log(chalk.cyan(`Going back to Restore...`));
   }
-
-  const cluster: Cluster = await mongo.getCluster();
 
   if (cluster.runningOn === 'Docker Container') {
     const restore = new RestoreContainer(cluster, dumps);

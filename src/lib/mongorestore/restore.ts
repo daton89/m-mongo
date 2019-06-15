@@ -35,7 +35,7 @@ export default class Restore {
     });
   }
 
-  public async getCommand(database: string, storagePath: string) {
+  public getCommand(database: string, storagePath: string) {
     const {
       host,
       ssl,
