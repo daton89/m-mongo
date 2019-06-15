@@ -9,6 +9,12 @@ export async function showMainMenu() {
   return answer;
 }
 
+export function getStoragePath() {
+  const storagePath = conf.get('settings.storagePath');
+
+  return storagePath || process.cwd();
+}
+
 export async function setStoragePath() {
   const storagePath = await inquirer.askStoragePath();
 
