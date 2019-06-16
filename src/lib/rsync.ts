@@ -1,6 +1,7 @@
 import Rsync from 'rsync';
-import debug from 'debug';
 import os from 'os';
+import { Spinner } from 'clui';
+import debug from 'debug';
 
 const dd = debug('rsync');
 
@@ -16,6 +17,8 @@ export function exec(
   flags?: string
 ) {
   return new Promise((resolve, reject) => {
+    const status = new Spinner(`Syncing remote with local... please wait...`);
+    status.start();
     // Build the command
     const rsync = new Rsync()
       .executable(
@@ -41,6 +44,7 @@ export function exec(
       } else {
         reject();
       }
+      status.stop();
     });
   });
 }
