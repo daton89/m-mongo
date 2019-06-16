@@ -1,5 +1,5 @@
 {
-  "name": "m-mongo",
+  "name": "@tonillo/m-mongo",
   "version": "1.0.0",
   "description": "MongoDB migration command line tools for dump restore export and import databases",
   "main": "build/main/index.js",
@@ -8,6 +8,7 @@
   "repository": "https://github.com/daton89/m-mongo",
   "license": "MIT",
   "keywords": [],
+  "private": false,
   "scripts": {
     "describe": "npm-scripts-info",
     "start": "run-s build && node build/main/index.js",
