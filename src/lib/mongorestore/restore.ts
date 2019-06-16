@@ -1,11 +1,12 @@
-// import chalk from 'chalk';
+import debug from 'debug';
 
 import { Cluster } from '../cluster';
 // import * as ssh from '../ssh';
 import * as inquirer from '../inquirer';
 import spawn from '../spawn';
 import * as mongo from '../mongo';
-// import * as settings from '../settings';
+
+const dd = debug('Restore');
 
 export default class Restore {
   constructor(public cluster: Cluster, public dumps: string[]) {}
@@ -17,16 +18,14 @@ export default class Restore {
 
     const database = await this.getDatabase();
 
-    // const storagePath = settings.getStoragePath();
-
     const { command, args } = await this.getCommand(database, dump);
     return new Promise(resolve => {
       spawn(command, args).subscribe(
         data => {
-          console.log(data);
+          dd(`spawn %o`, data);
         },
         err => {
-          console.log(err);
+          dd(`spawn err %o`, err);
         },
         () => {
           resolve();
@@ -47,16 +46,19 @@ export default class Restore {
     const command = 'mongorestore';
 
     const args = [
-      host ? `--host ${host}` : '',
+      host ? '--host' : '',
+      host ? host : '',
       ssl === 'Yes' ? '--ssl' : '',
-      '--username',
-      username ? `--username ${username}` : '',
-      password ? `--password ${password}` : '',
-      authenticationDatabase
-        ? `--authenticationDatabase ${authenticationDatabase}`
-        : '',
-      database ? `--db ${database}` : '',
-      storagePath ? `--out ${storagePath}` : ''
+      username ? '--username' : '',
+      username ? username : '',
+      password ? '--password' : '',
+      password ? password : '',
+      authenticationDatabase ? '--authenticationDatabase' : '',
+      authenticationDatabase ? authenticationDatabase : '',
+      database ? '--db' : '',
+      database ? database : '',
+      '--drop',
+      storagePath ? storagePath : ''
     ];
     return { command, args };
   }
