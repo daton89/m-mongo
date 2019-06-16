@@ -11,6 +11,17 @@ import * as mongo from '../mongo';
 const dd = debug('Dump');
 
 export default class Dump {
+  public static getDumps() {
+    const dumps: string[] = conf.get('dumps') || [];
+    const folders: string[] = [];
+    return dumps.reduce(async (acc: Promise<string[]>, storagePath: string) => {
+      await acc;
+      const dirs = await folder.ls(storagePath);
+      folders.push(...dirs);
+      return folders;
+    }, Promise.resolve([]));
+  }
+
   constructor(public cluster: Cluster) {}
 
   public async exec() {
@@ -71,19 +82,6 @@ export default class Dump {
     ];
 
     return { command, args };
-  }
-
-  public getDumps() {
-    const dumps = conf.get('dumps') || [];
-
-    return dumps
-      .map(async (storagePath: string) => {
-        const folders = await folder.ls(storagePath);
-        dd('getDumps storagePath %o', storagePath);
-        dd('getDumps folders', folders);
-        return folders;
-      })
-      .flat();
   }
 
   public setDump(storagePath: string) {
