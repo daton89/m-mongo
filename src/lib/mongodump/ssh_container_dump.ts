@@ -37,7 +37,7 @@ export default class SSHContainerDump extends Dump {
       // copy dumped files from host to localhost
       const { username, host, privateKey } = sshConnection;
 
-      const src = `${username}@${host}:${folderOnTheHost}`;
+      const src = `${username}@${host}:${folderOnTheHost}/dump/*`;
 
       try {
         // TODO: avoid that on local we find mongodump/dump folder
@@ -53,7 +53,7 @@ export default class SSHContainerDump extends Dump {
   // copy dumped files from container to host
   private dockerCp(containerName: string, folderOnTheHost: string) {
     return new Promise(resolve => {
-      const command = `mkdir -p ${folderOnTheHost} ; docker cp ${containerName}:./dump ${folderOnTheHost}`;
+      const command = `rm -rf ${folderOnTheHost} && mkdir -p ${folderOnTheHost} && docker cp ${containerName}:./dump/ ${folderOnTheHost}`;
       dd('dockerCp %o', command);
       ssh.exec(command).subscribe(
         data => {
