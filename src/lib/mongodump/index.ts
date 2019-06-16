@@ -1,10 +1,9 @@
-import { Cluster } from '../cluster';
+import { Cluster, ClusterManager } from '../cluster';
 import Dump from './dump';
 import SSHContainerDump from './ssh_container_dump';
-import * as mongo from '../mongo';
 
 export async function start() {
-  const cluster: Cluster = await mongo.getCluster();
+  const cluster: Cluster = await ClusterManager.getCluster();
 
   if (
     cluster.runningOn === 'Docker Container' &&
