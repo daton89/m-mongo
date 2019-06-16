@@ -8,6 +8,10 @@ import figlet from 'figlet';
 // import repo from "./lib/repo";
 // import files from "./lib/files";
 
+import * as settings from './lib/settings';
+import * as mongodump from './lib/mongodump';
+import * as mongorestore from './lib/mongorestore';
+import { ClusterManager } from './lib/cluster';
 import {
   ADD_CLUSTER,
   SHOW_CLUSTERS,
@@ -18,10 +22,6 @@ import {
   EXIT,
   RESTORE
 } from './lib/actions';
-import * as mongo from './lib/mongo';
-import * as settings from './lib/settings';
-import * as mongodump from './lib/mongodump';
-import * as mongorestore from './lib/mongorestore';
 
 clear();
 console.log(
@@ -48,10 +48,10 @@ const run = async () => {
         await settings.setStoragePath();
         break;
       case ADD_CLUSTER:
-        await mongo.setMongoCluster();
+        await ClusterManager.create();
         break;
       case SHOW_CLUSTERS:
-        mongo.showClusters();
+        ClusterManager.showClusters();
         break;
       case DUMP:
         await mongodump.start();
