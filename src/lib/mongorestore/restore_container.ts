@@ -1,10 +1,12 @@
-import chalk from 'chalk';
+import debug from 'debug';
 
 import * as inquirer from '../inquirer';
 import * as mongo from '../mongo';
 import Restore from './restore';
 import * as ssh from '../ssh';
 import spawn from '../spawn';
+
+const dd = debug('RestoreContainer');
 
 export default class RestoreContainer extends Restore {
   public async exec() {
@@ -51,10 +53,10 @@ export default class RestoreContainer extends Restore {
       // using docker in remote
       ssh.exec(command).subscribe(
         data => {
-          console.log(chalk.green(`STDOUT: ${data}`));
+          dd(`STDOUT: ${data}`);
         },
         data => {
-          console.log(chalk.red(`STDERR: ${data}`));
+          dd(`STDERR: ${data}`);
         },
         async () => {
           resolve();
@@ -68,10 +70,10 @@ export default class RestoreContainer extends Restore {
       // using docker in local
       spawn(command, args).subscribe(
         data => {
-          console.log(chalk.green(`STDOUT: ${data}`));
+          dd(`STDOUT: ${data}`);
         },
         data => {
-          console.log(chalk.red(`STDERR: ${data}`));
+          dd(`STDERR: ${data}`);
         },
         async () => {
           resolve();
