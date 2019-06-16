@@ -9,40 +9,40 @@ const dd = debug('mongo');
 
 import { Cluster } from './cluster';
 import * as inquirer from './inquirer';
-import conf from './conf';
+// import conf from './conf';
 import * as ssh from './ssh';
 // import spawn from './spawn';
 // tslint:disable-next-line: no-duplicate-imports
 // import { ConnectionParams } from './ssh';
 
-export function showClusters() {
-  const clusters: Cluster[] = conf.get('clusters');
-  clusters.forEach((cluster: Cluster, index: number) => {
-    console.log(`${chalk.bold.cyan(`Cluster #${index}`)}
-      ${chalk.cyan('Name:')} ${chalk.bold.magenta(cluster.name)}
-      ${chalk.cyan('Uri:')} ${chalk.bold.magenta(cluster.uri)}
-      ${chalk.cyan('Host:')} ${chalk.bold.magenta(cluster.host)}
-      ${chalk.cyan('SSL:')} ${chalk.bold.magenta(cluster.ssl)}
-      ${chalk.cyan('Username:')} ${chalk.bold.magenta(cluster.username)}
-      ${chalk.cyan('Password:')} ${chalk.bold.magenta(cluster.password)}
-      ${chalk.cyan('authenticationDatabase:')} ${chalk.bold.magenta(
-      cluster.authenticationDatabase
-    )}
-    `);
-  });
-}
+// export function showClusters() {
+//   const clusters: Cluster[] = conf.get('clusters');
+//   clusters.forEach((cluster: Cluster, index: number) => {
+//     console.log(`${chalk.bold.cyan(`Cluster #${index}`)}
+//       ${chalk.cyan('Name:')} ${chalk.bold.magenta(cluster.name)}
+//       ${chalk.cyan('Uri:')} ${chalk.bold.magenta(cluster.uri)}
+//       ${chalk.cyan('Host:')} ${chalk.bold.magenta(cluster.host)}
+//       ${chalk.cyan('SSL:')} ${chalk.bold.magenta(cluster.ssl)}
+//       ${chalk.cyan('Username:')} ${chalk.bold.magenta(cluster.username)}
+//       ${chalk.cyan('Password:')} ${chalk.bold.magenta(cluster.password)}
+//       ${chalk.cyan('authenticationDatabase:')} ${chalk.bold.magenta(
+//       cluster.authenticationDatabase
+//     )}
+//     `);
+//   });
+// }
 
-export async function setMongoCluster() {
-  const cluster = await inquirer.askMongoCluster();
+// export async function setMongoCluster() {
+//   const cluster = await inquirer.askMongoCluster();
 
-  const clusters = conf.get('clusters') || [];
+//   const clusters = conf.get('clusters') || [];
 
-  clusters.push(cluster);
+//   clusters.push(cluster);
 
-  conf.set({ clusters });
+//   conf.set({ clusters });
 
-  return cluster;
-}
+//   return cluster;
+// }
 
 export async function listContainersOverSSH(): Promise<string[]> {
   return new Promise(resolve => {
@@ -164,27 +164,27 @@ async function listDatabases(
   return Promise.resolve([]);
 }
 
-export async function getCluster() {
-  const clusters = conf.get('clusters');
+// export async function getCluster() {
+//   const clusters = conf.get('clusters');
 
-  if (!clusters.length) {
-    const newCluster = setMongoCluster();
+//   if (!clusters.length) {
+//     const newCluster = setMongoCluster();
 
-    clusters.push(newCluster);
+//     clusters.push(newCluster);
 
-    dd('getCluster %o', newCluster);
+//     dd('getCluster %o', newCluster);
 
-    return newCluster;
-  }
+//     return newCluster;
+//   }
 
-  const { clusterName } = await inquirer.selectCluster(clusters);
+//   const { clusterName } = await inquirer.selectCluster(clusters);
 
-  const cluster = clusters.find((c: Cluster) => c.name === clusterName);
+//   const cluster = clusters.find((c: Cluster) => c.name === clusterName);
 
-  dd('getCluster %o', cluster);
+//   dd('getCluster %o', cluster);
 
-  return cluster;
-}
+//   return cluster;
+// }
 
 export async function getDatabase(cluster: Cluster, containerName?: string) {
   const databases: object[] = await listDatabases(cluster, containerName);
