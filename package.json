@@ -34,7 +34,8 @@
     "clean": "trash build test",
     "all": "run-s reset test cov:check doc:html",
     "prepare-release": "run-s all version doc:publish",
-    "preinstall": "node -e \"if(process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('m-mongo must be installed with Yarn: https://yarnpkg.com/')\""
+    "preinstall": "node -e \"if(process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('m-mongo must be installed with Yarn: https://yarnpkg.com/')\"",
+    "postinstall": "run-s build"
   },
   "scripts-info": {
     "info": "Display information about the package scripts",
@@ -114,5 +115,8 @@
     "exclude": [
       "**/*.spec.js"
     ]
+  },
+  "bin": {
+    "m-mongo": "./build/main/index.js"
   }
 }
