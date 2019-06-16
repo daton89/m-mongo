@@ -9,6 +9,7 @@
   "license": "MIT",
   "keywords": [],
   "private": false,
+  "preferGlobal": true,
   "scripts": {
     "describe": "npm-scripts-info",
     "start": "run-s build && node build/main/index.js",
@@ -35,8 +36,7 @@
     "clean": "trash build test",
     "all": "run-s reset test cov:check doc:html",
     "prepare-release": "run-s all version doc:publish",
-    "preinstall": "node -e \"if(process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('m-mongo must be installed with Yarn: https://yarnpkg.com/')\"",
-    "postinstall": "run-s build"
+    "preinstall_disabled": "node -e \"if(process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('m-mongo must be installed with Yarn: https://yarnpkg.com/')\""
   },
   "scripts-info": {
     "info": "Display information about the package scripts",
