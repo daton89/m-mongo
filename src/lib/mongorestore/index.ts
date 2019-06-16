@@ -1,21 +1,18 @@
 import chalk from 'chalk';
 import debug from 'debug';
 
-import { Cluster } from '../cluster';
+import { Cluster, ClusterManager } from '../cluster';
 import Restore from './restore';
 import RestoreContainer from './restore_container';
-import * as mongo from '../mongo';
 import Dump from '../mongodump/dump';
 import * as mainDump from '../mongodump';
 
 const dd = debug('restore:start');
 
 export async function start() {
-  const cluster: Cluster = await mongo.getCluster();
+  const cluster: Cluster = await ClusterManager.getCluster();
 
-  const mongodump = new Dump(cluster);
-
-  const dumps: string[] = mongodump.getDumps();
+  const dumps: string[] = await Dump.getDumps();
 
   dd('dumps :: %o', dumps);
 
