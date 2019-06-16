@@ -1,10 +1,11 @@
-import chalk from 'chalk';
 import fs from 'fs';
 import { Spinner } from 'clui';
 import { Client } from 'ssh2';
 import { Observable } from 'rxjs';
+import debug from 'debug';
 
 const conn = new Client();
+const dd = debug('ssh');
 
 export interface ConnectionParams {
   host: string;
@@ -27,12 +28,12 @@ export function connect(connectionParams: ConnectionParams) {
     conn
       .on('ready', () => {
         status.stop();
-        console.log(chalk.cyan('SSH Client :: ready'));
+        dd('SSH Client :: ready');
         resolve();
       })
       .on('error', () => {
         status.stop();
-        console.log(chalk.red('SSH Connection :: failed'));
+        dd('SSH Connection :: failed');
         reject();
       });
   });
@@ -45,29 +46,30 @@ export function exec(command: string): Observable<string> {
     conn.exec(command, (err: Error, stream: any) => {
       if (err) {
         status.stop();
+        dd('error %o', err);
         return observer.error(err);
       }
 
       stream.stderr.on('data', (data: Buffer) => {
         status.stop();
+        dd('STDERR :: %o', data.toString());
         observer.next(data.toString());
       });
 
       stream.stdout.on('data', (data: Buffer) => {
         status.stop();
+        dd('STDOUT :: %o', data.toString());
         observer.next(data.toString());
       });
 
       stream.on('close', (code: any, signal: any) => {
         status.stop();
         if (code === 0) {
-          console.log(chalk.green(`Command ${chalk.cyan(command)} Completed!`));
+          dd(`Command ${command} Completed!`);
         } else {
-          console.log(chalk.red(`Command ${chalk.cyan(command)} Failed!`));
+          dd(`Command ${command} Failed!`);
         }
-        console.log(
-          chalk.cyan(`Stream :: close :: code: ${code} signal: ${signal}`)
-        );
+        dd(`Stream :: close :: code: ${code} signal: ${signal}`);
         observer.complete();
       });
     });
@@ -78,7 +80,7 @@ export function end() {
   return new Promise(resolve => {
     conn.end();
     conn.on('end', () => {
-      console.log(chalk.cyan('SSH Client :: ended'));
+      dd('SSH Client :: ended');
       resolve();
     });
   });
