@@ -6,7 +6,7 @@ import conf from '../conf';
 import spawn from '../spawn';
 import * as folder from '../folder';
 import * as settings from '../settings';
-import * as mongo from '../mongo';
+import Database from '../database/database';
 
 const dd = debug('Dump');
 
@@ -25,17 +25,21 @@ export default class Dump {
   constructor(public cluster: Cluster) {}
 
   public async exec() {
-    const database = await this.getDatabase();
+    const database = new Database(this.cluster);
+
+    const databaseList = await database.listDatabases();
+
+    const databaseName = await Database.selectDatabase(databaseList);
 
     const storagePath = settings.getStoragePath();
 
-    const { command, args } = this.getCommand(database, storagePath);
+    const { command, args } = this.getCommand(databaseName, storagePath);
 
-    console.log(
-      chalk.yellow(
-        `Watchout! I don't know why, but mongodump normal behavior is to stream output to the STDERR! `
-      )
-    );
+    // console.log(
+    //   chalk.yellow(
+    //     `Watchout! I don't know why, but mongodump normal behavior is to stream output to the STDERR! `
+    //   )
+    // );
     return new Promise((resolve, reject) => {
       spawn(command, args).subscribe(
         data => {
@@ -88,11 +92,5 @@ export default class Dump {
     const dumps = conf.get('dumps') || [];
 
     conf.set('dumps', [storagePath, ...dumps]);
-  }
-
-  private async getDatabase() {
-    const database = await mongo.getDatabase(this.cluster);
-
-    return database;
   }
 }

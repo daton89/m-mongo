@@ -4,26 +4,31 @@ import * as ssh from '../ssh';
 import * as inquirer from '../inquirer';
 import * as rsync from '../rsync';
 import * as settings from '../settings';
-import * as mongo from '../mongo';
 import Dump from './dump';
+import Database from '../database/database';
+import SSHContainerDatabase from '../database/ssh_container_database';
 
 const dd = debug('SSHContainerDump');
 
 export default class SSHContainerDump extends Dump {
-  public async exec() {
-    const { sshConnection } = this.cluster;
+  public async exec(): Promise<void> {
+    // const { sshConnection } = this.cluster;
 
     const storagePath = settings.getStoragePath();
 
-    await ssh.connect(sshConnection);
+    // await ssh.connect(sshConnection);
 
-    const containers: string[] = await mongo.listContainersOverSSH();
+    const database = new SSHContainerDatabase(this.cluster);
+
+    await database.connect();
+
+    const containers: string[] = await database.listContainers();
 
     const { containerName } = await inquirer.selectContainer(containers);
 
-    const database = await mongo.getDatabase(this.cluster, containerName);
+    const databaseName = await Database.selectDatabase(containerName);
 
-    const { command, args } = this.getCommand(database, storagePath);
+    const { command, args } = this.getCommand(databaseName, storagePath);
 
     return new Promise(async (resolve, reject) => {
       // using mongo with docker
@@ -35,7 +40,7 @@ export default class SSHContainerDump extends Dump {
       await this.dockerCp(containerName, folderOnTheHost);
 
       // copy dumped files from host to localhost
-      const { username, host, privateKey } = sshConnection;
+      const { username, host, privateKey } = this.cluster.sshConnection;
 
       const src = `${username}@${host}:${folderOnTheHost}/dump/*`;
 
