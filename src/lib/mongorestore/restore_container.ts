@@ -1,10 +1,10 @@
 import debug from 'debug';
 
 import * as inquirer from '../inquirer';
-import * as mongo from '../mongo';
 import Restore from './restore';
 import * as ssh from '../ssh';
 import spawn from '../spawn';
+import SSHContainerDatabase from '../database/ssh_container_database';
 
 const dd = debug('RestoreContainer');
 
@@ -14,11 +14,17 @@ export default class RestoreContainer extends Restore {
 
     if (requiresSSH === 'Yes') await this.connect();
 
-    const containerName = await this.getContainerName();
+    const database = new SSHContainerDatabase(this.cluster);
 
-    const database = await this.getDatabaseFromContainer(containerName);
+    const containerList = await database.listContainers();
 
-    const { command, args } = await this.getCommand(database, '');
+    const { containerName } = await inquirer.selectContainer(containerList);
+
+    const databaseList = await database.listDatabasesFromContainer(containerName);
+
+    const databaseName = await SSHContainerDatabase.selectDatabase(databaseList);
+
+    const { command, args } = await this.getCommand(databaseName, '');
 
     const dockerExec = ['docker', 'exec', containerName, command, ...args];
 
@@ -32,20 +38,6 @@ export default class RestoreContainer extends Restore {
 
   private async connect() {
     await ssh.connect(this.cluster.sshConnection);
-  }
-
-  private async getContainerName() {
-    const containers: string[] = await mongo.listContainersOverSSH();
-
-    const { containerName } = await inquirer.selectContainer(containers);
-
-    return containerName;
-  }
-
-  private async getDatabaseFromContainer(containerName: string) {
-    const database = await mongo.getDatabase(this.cluster, containerName);
-
-    return database;
   }
 
   private sshDocker(command: string) {

@@ -1,10 +1,9 @@
 import debug from 'debug';
 
 import { Cluster } from '../cluster';
-// import * as ssh from '../ssh';
 import * as inquirer from '../inquirer';
 import spawn from '../spawn';
-import * as mongo from '../mongo';
+import Database from '../database/database';
 
 const dd = debug('Restore');
 
@@ -16,9 +15,13 @@ export default class Restore {
 
     // TODO: ask to select an optional collection
 
-    const database = await this.getDatabase();
+    const database = new Database(this.cluster);
 
-    const { command, args } = await this.getCommand(database, dump);
+    const databaseList = await database.listDatabases();
+
+    const databaseName = await Database.selectDatabase(databaseList);
+
+    const { command, args } = await this.getCommand(databaseName, dump);
     return new Promise(resolve => {
       spawn(command, args).subscribe(
         data => {
@@ -63,9 +66,4 @@ export default class Restore {
     return { command, args };
   }
 
-  private async getDatabase() {
-    const database = await mongo.getDatabase(this.cluster);
-
-    return database;
-  }
 }
