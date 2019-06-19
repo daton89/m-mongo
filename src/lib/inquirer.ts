@@ -59,21 +59,38 @@ export function askMongoCluster() {
     },
     {
       type: 'list',
-      name: 'runningOn',
-      message: 'Where is this MongoDB running on?',
-      choices: ['Virtual Machine', 'Docker Container', 'Cloud Provider']
-    },
-    {
-      type: 'list',
       name: 'type',
       message: 'How is this MongoDB running?',
       choices: ['Standalone', 'ReplicaSet']
     },
     {
       type: 'list',
+      name: 'runningOn',
+      message: 'Where is this MongoDB running on?',
+      choices: ['Virtual Machine', 'Docker Container', 'Cloud Provider']
+    },
+    {
+      type: 'list',
+      name: 'requiresSSH',
+      message: 'Do you need to use an SSH tunnel?',
+      default: 'No',
+      choices: ['Yes', 'No']
+    },
+    {
+      type: 'list',
       name: 'accessMethod',
       message: 'How can we access to get databases list?',
-      choices: ['MongoClient', 'MongoShell']
+      default: 'MongoClient',
+      choices: [
+        {
+          value: 'MongoClient',
+          name: 'Mongo Client (the cluster is reachable from your network)'
+        },
+        {
+          value: 'MongoShell',
+          name: 'Mongo Shell (the cluster requires an SSH tunnel or is in a container and we have not access from our network)'
+        }
+      ]
     },
     {
       type: 'input',
