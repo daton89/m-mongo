@@ -26,7 +26,11 @@ export default class SSHContainerDump extends Dump {
 
     const { containerName } = await inquirer.selectContainer(containers);
 
-    const databaseName = await Database.selectDatabase(containerName);
+    const databaseList = await database.listDatabasesFromContainer(
+      containerName
+    );
+
+    const databaseName = await Database.selectDatabase(databaseList);
 
     const { command, args } = this.getCommand(databaseName, storagePath);
 
