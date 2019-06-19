@@ -10,6 +10,8 @@ const dd = debug('RestoreContainer');
 
 export default class RestoreContainer extends Restore {
   public async exec() {
+    const { dump } = await inquirer.selectDump(this.dumps);
+
     const { requiresSSH } = this.cluster;
 
     if (requiresSSH === 'Yes') await this.connect();
@@ -22,9 +24,20 @@ export default class RestoreContainer extends Restore {
 
     const databaseList = await database.listDatabasesFromContainer(containerName);
 
-    const databaseName = await SSHContainerDatabase.selectDatabase(databaseList);
+    // const databaseName = await SSHContainerDatabase.selectDatabase(databaseList);
 
-    const { command, args } = await this.getCommand(databaseName, '');
+    // ask to restore into an existing db or you need to create a new one
+    // ask to select database from list or ask the database name
+    // ask to restore only a collection or all of them
+    // ask collection name
+    // ask if you want to drop existing records
+    const {
+      databaseName,
+      collectionName,
+      drop
+    } = await inquirer.askRestoreOptions(databaseList);
+
+    const { command, args } = await this.getCommand(databaseName, dump, collectionName, drop);
 
     const dockerExec = ['docker', 'exec', containerName, command, ...args];
 
