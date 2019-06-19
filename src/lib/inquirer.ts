@@ -291,3 +291,70 @@ export function selectDump(dumps: string[]) {
   ];
   return inquirer.prompt(questions);
 }
+
+export function askRestoreOptions(databases: string[]) {
+  const questions: Question[] = [
+    {
+      type: 'list',
+      name: 'choosedDatabase',
+      message:
+        'Do you want to restore into an existing db or you need to create a new one?',
+      default: 'Use one from list',
+      choices: [
+        {
+          name: 'Use one from list',
+          value: 'list'
+        },
+        { name: 'Insert a database name', value: 'insert' }
+      ]
+    },
+    {
+      type: 'list',
+      name: 'databaseName',
+      message: 'Which database?',
+      choices: databases,
+      default: databases[0],
+      when(answers) {
+        return answers.choosedDatabase === 'list';
+      }
+    },
+    {
+      type: 'input',
+      name: 'databaseName',
+      message: 'Insert database name:',
+      default: 'new-database',
+      when(answers) {
+        return answers.choosedDatabase === 'insert';
+      }
+    },
+    {
+      type: 'list',
+      name: 'choosedCollection',
+      message: 'Do you want to restore only a collection or all of them?',
+      default: 'all',
+      choices: [
+        {
+          name: 'All of them',
+          value: 'all'
+        },
+        { name: 'Only one', value: 'only one' }
+      ]
+    },
+    {
+      type: 'input',
+      name: 'collectionName',
+      message: 'Insert collection name:',
+      default: 'collection-name',
+      when(answers) {
+        return answers.choosedCollection === 'only one';
+      }
+    },
+    {
+      type: 'confirm',
+      name: 'drop',
+      message: 'Do you want to drop existing records?',
+      default: 'y'
+    }
+  ];
+  return inquirer.prompt(questions);
+}
