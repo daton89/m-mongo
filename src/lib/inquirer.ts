@@ -142,14 +142,14 @@ export function selectCluster(clusters: Cluster[]) {
   return inquirer.prompt(questions);
 }
 
-export function selectDatabase(databases: any) {
+export function selectDatabase(databases: string[]) {
   const questions: Question[] = [
     {
       type: 'list',
       name: 'database',
       message: 'Which database?',
-      choices: databases.map((c: Cluster) => c.name),
-      default: databases[0].name
+      choices: databases,
+      default: databases[0]
     }
   ];
   return inquirer.prompt(questions);
