@@ -32,7 +32,7 @@ export async function setSshConnection() {
 
   console.log(`${chalk.bold.cyan('New connection saved:')}
     ${chalk.cyan('Host:')} ${chalk.magenta(answer.host)}
-    ${chalk.cyan('Port:')} ${chalk.magenta(answer.port)}
+    ${chalk.cyan('Port:')} ${chalk.magenta(`${answer.port}`)}
     ${chalk.cyan('Username:')} ${chalk.magenta(answer.username)}
     ${chalk.cyan('PrivateKey:')} ${chalk.magenta(answer.privateKey)}
   `);
