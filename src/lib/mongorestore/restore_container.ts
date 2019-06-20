@@ -50,6 +50,7 @@ export default class RestoreContainer extends Restore {
   }
 
   private async connect() {
+    if (!this.cluster.sshConnection) throw new Error('SSH Tunnel not found!')
     await ssh.connect(this.cluster.sshConnection);
   }
 

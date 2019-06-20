@@ -43,6 +43,8 @@ export default class SSHContainerDump extends Dump {
       const folderOnTheHost = '~/data-db/mongodumps';
       await this.dockerCp(containerName, folderOnTheHost);
 
+      if (!this.cluster.sshConnection) throw new Error('SSH Tunnel not found!');
+
       // copy dumped files from host to localhost
       const { username, host, privateKey } = this.cluster.sshConnection;
 
