@@ -19,13 +19,19 @@ export default class Database {
   public listDatabases(): Promise<string[]> {
     const status = new Spinner('Connecting to the cluster..., please wait...');
     status.start();
+
     return new Promise((resolve, reject) => {
-      const uri = `mongodb+srv://${this.cluster.username}:${this.cluster.password}@${this.cluster.uri}/test`;
+      const uri = this.buildUri();
+
+      dd('mongoClient uri %s', uri);
+
       // Connect using MongoClient
       const client = new MongoClient(uri, { useNewUrlParser: true });
+
       client.connect((err: Error) => {
         if (err) {
           dd('listDatabasesWithMongoClient %o', err);
+          client.close();
           return reject(err);
         }
         // Use the admin database for the operation
@@ -36,13 +42,26 @@ export default class Database {
           { listDatabases: 1 },
           (e: Error, result: any) => {
             if (e) return reject(err);
+
             client.close();
+
             status.stop();
+
             dd('listDatabasesWithMongoClient %o', result.databases);
+
             resolve(result.databases.map(({ name }: { name: string }) => name));
           }
         );
       });
     });
+  }
+  private buildUri() {
+    const { type, authEnabled, username, password, uri } = this.cluster;
+
+    const protocol = type === 'ReplicaSet' ? 'mongodb+srv://' : 'mongodb://';
+
+    const auth = authEnabled ? `${username}:${password}@` : '';
+
+    return `${protocol}${auth}${uri}/test`;
   }
 }
