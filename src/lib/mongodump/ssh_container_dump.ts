@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import debug from 'debug';
 
 import * as ssh from '../ssh';
@@ -53,7 +54,7 @@ export default class SSHContainerDump extends Dump {
       try {
         // TODO: avoid that on local we find mongodump/dump folder
         await rsync.exec(src, storagePath, privateKey);
-        this.setDump(storagePath);
+        this.setDump(storagePath, databaseName);
         resolve();
       } catch (err) {
         reject(err);
@@ -68,10 +69,10 @@ export default class SSHContainerDump extends Dump {
       dd('dockerCp %o', command);
       ssh.exec(command).subscribe(
         data => {
-          dd('dockerCp %o', `STDOUT: ${data}`);
+          dd('dockerCp %s', `STDOUT: ${data}`);
         },
         data => {
-          dd('dockerCp %o', `STDERR: ${data}`);
+          console.log(chalk.red(`dockerCp STDERR: ${data}`));
         },
         async () => {
           resolve();
@@ -88,7 +89,7 @@ export default class SSHContainerDump extends Dump {
           dd('dockerExec %o', `STDOUT: ${data}`);
         },
         data => {
-          dd('dockerExec %o', `STDERR: ${data}`);
+          console.log(chalk.red(`dockerExec STDERR: ${data}`));
         },
         async () => {
           resolve();
