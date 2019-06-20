@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import path from 'path';
 import debug from 'debug';
 
 import { Cluster } from '../cluster';
@@ -13,11 +14,16 @@ const dd = debug('Dump');
 export default class Dump {
   public static getDumps() {
     const dumps: string[] = conf.get('dumps') || [];
+
     const folders: string[] = [];
+
     return dumps.reduce(async (acc: Promise<string[]>, storagePath: string) => {
       await acc;
+
       const dirs = await folder.ls(storagePath);
+
       folders.push(...dirs);
+
       return folders;
     }, Promise.resolve([]));
   }
@@ -50,7 +56,7 @@ export default class Dump {
           reject();
         },
         () => {
-          this.setDump(storagePath);
+          this.setDump(storagePath, databaseName);
           resolve();
         }
       );
@@ -88,9 +94,11 @@ export default class Dump {
     return { command, args };
   }
 
-  public setDump(storagePath: string) {
+  public setDump(storagePath: string, database: string) {
     const dumps = conf.get('dumps') || [];
 
-    conf.set('dumps', [storagePath, ...dumps]);
+    const dump = path.join(storagePath, database);
+
+    conf.set('dumps', [dump, ...dumps]);
   }
 }
