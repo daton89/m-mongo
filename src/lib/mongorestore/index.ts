@@ -10,6 +10,7 @@ import * as mainDump from '../mongodump';
 const dd = debug('restore:start');
 
 export async function start() {
+  // TODO: getCluster inside the Restore constructor
   const cluster: Cluster = await ClusterManager.getCluster();
 
   const dumps: string[] = await Dump.getDumps();
@@ -39,18 +40,3 @@ export async function start() {
     await restore.exec();
   }
 }
-
-// export async function exec() {
-//   const cluster: Cluster = await mongo.getCluster();
-
-//   if (cluster.runningOn === 'Docker Container') {
-//     if (cluster.requiresSSH === 'Yes') {
-//       await restoreInContainerOverSsh(cluster);
-//     } else {
-//       await restoreInContainer(cluster);
-//     }
-//   }
-//   if (cluster.runningOn === 'Cloud Platform') {
-//     await restore(cluster);
-//   }
-// }
