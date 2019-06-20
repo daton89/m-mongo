@@ -67,7 +67,12 @@ export function askMongoCluster() {
       type: 'list',
       name: 'runningOn',
       message: 'Where is this MongoDB running on?',
-      choices: ['Virtual Machine', 'Docker Container', 'Cloud Provider']
+      choices: [
+        'Localhost',
+        'Virtual Machine',
+        'Docker Container',
+        'Cloud Provider'
+      ]
     },
     {
       type: 'list',
@@ -88,7 +93,8 @@ export function askMongoCluster() {
         },
         {
           value: 'MongoShell',
-          name: 'Mongo Shell (the cluster requires an SSH tunnel or is in a container and we have not access from our network)'
+          name:
+            'Mongo Shell (the cluster requires an SSH tunnel or is in a container and we have not access from our network)'
         }
       ]
     },
@@ -110,23 +116,38 @@ export function askMongoCluster() {
       default: 'Yes'
     },
     {
+      type: 'confirm',
+      name: 'authEnabled',
+      message: 'Is the authentication enabled?',
+      default: 'y'
+    },
+    {
       type: 'input',
       name: 'username',
-      message: 'Enter MongoDB username:'
+      message: 'Enter MongoDB username:',
+      when(answers) {
+        return answers.authEnabled;
+      }
     },
     {
       type: 'password',
       name: 'password',
-      message: 'Enter MongoDB user password:'
+      message: 'Enter MongoDB user password:',
+      when(answers) {
+        return answers.authEnabled;
+      }
     },
     {
       type: 'input',
       name: 'authenticationDatabase',
       message: 'Enter MongoDB authenticationDatabase name:',
-      default: 'admin'
+      default: 'admin',
+      when(answers) {
+        return answers.authEnabled;
+      }
     }
   ];
-  return inquirer.prompt(questions);
+  return inquirer.prompt(questions).then(answers => answers as Cluster);
 }
 
 export function selectCluster(clusters: Cluster[]) {
@@ -192,6 +213,20 @@ export function askSshConnection() {
       name: 'privateKey',
       message: 'The privateKey:',
       default: `${path.resolve(os.homedir(), '.ssh', '/')}id_rsa`
+    }
+  ];
+  return inquirer
+    .prompt(questions)
+    .then(answers => answers as ConnectionParams);
+}
+
+export function useExistingSshConnection() {
+  const questions: Question[] = [
+    {
+      type: 'confirm',
+      name: 'useExistingSshConnection',
+      message: 'Do you want to use an existing SSH tunnel?',
+      default: true
     }
   ];
   return inquirer.prompt(questions);
