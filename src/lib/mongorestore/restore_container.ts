@@ -22,7 +22,9 @@ export default class RestoreContainer extends Restore {
 
     const { containerName } = await inquirer.selectContainer(containerList);
 
-    const databaseList = await database.listDatabasesFromContainer(containerName);
+    const databaseList = await database.listDatabasesFromContainer(
+      containerName
+    );
 
     // const databaseName = await SSHContainerDatabase.selectDatabase(databaseList);
 
@@ -37,7 +39,12 @@ export default class RestoreContainer extends Restore {
       drop
     } = await inquirer.askRestoreOptions(databaseList);
 
-    const { command, args } = await this.getCommand(databaseName, dump, collectionName, drop);
+    const { command, args } = await this.getCommand(
+      databaseName,
+      dump,
+      collectionName,
+      drop
+    );
 
     const dockerExec = ['docker', 'exec', containerName, command, ...args];
 
@@ -50,7 +57,7 @@ export default class RestoreContainer extends Restore {
   }
 
   private async connect() {
-    if (!this.cluster.sshConnection) throw new Error('SSH Tunnel not found!')
+    if (!this.cluster.sshConnection) throw new Error('SSH Tunnel not found!');
     await ssh.connect(this.cluster.sshConnection);
   }
 

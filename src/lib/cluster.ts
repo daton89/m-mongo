@@ -95,7 +95,7 @@ export class ClusterManager {
 
     dd('getCluster %o', cluster);
 
-    if (!cluster) throw new Error('Cluster not found')
+    if (!cluster) throw new Error('Cluster not found');
 
     return cluster;
   }
