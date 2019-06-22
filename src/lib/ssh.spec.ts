@@ -1,39 +1,33 @@
-// tslint:disable:no-expression-statement
 import test from 'ava';
 import conf from './conf';
 import { connect, exec, end } from './ssh';
 
-test('connect', async t => {
-  const connections = conf.get('sshConnections');
-  try {
+test('ssh', t => {
+  t.plan(1);
+
+  return new Promise(async resolve => {
+    const connections = conf.get('sshConnections');
+
     await connect(connections[0]);
-    t.pass();
-  } catch (err) {
-    t.fail();
-  }
-});
 
-test('exec pass', async t => {
-  const command = 'echo yes';
+    console.log('connected');
 
-  exec(command).subscribe(
-    stout => {
-      t.is(stout, 'yes');
-    },
-    err => {
-      t.fail(err);
-    },
-    () => {
-      t.pass();
-    }
-  );
-});
-
-test('end', async t => {
-  try {
-    await end();
-    t.pass();
-  } catch (err) {
-    t.fail();
-  }
+    const command = 'echo yes';
+    exec(command).subscribe(
+      stout => {
+        console.log('stout', stout);
+        t.regex(stout, new RegExp('yes'));
+        resolve();
+      },
+      err => {
+        console.log('err', err);
+        t.fail(err);
+      },
+      async () => {
+        console.log('ended');
+        await end();
+        // t.pass();
+      }
+    );
+  });
 });
