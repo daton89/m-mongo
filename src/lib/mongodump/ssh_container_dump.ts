@@ -33,7 +33,7 @@ export default class SSHContainerDump extends Dump {
 
     const databaseName = await Database.selectDatabase(databaseList);
 
-    const { command, args } = this.getCommand(databaseName, storagePath);
+    const { command, args } = this.getCommand(databaseName, '');
 
     return new Promise(async (resolve, reject) => {
       // using mongo with docker
