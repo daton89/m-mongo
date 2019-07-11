@@ -30,7 +30,7 @@ export function exec(
         os.platform() === 'win32' ? dest.replace('C:', '\\cygdrive\\c') : dest
       );
 
-    dd('command %o', rsync.command());
+    dd('command %s', rsync.command());
 
     // Execute the command
     rsync.execute((err: Error, code: number, cmd: string) => {
