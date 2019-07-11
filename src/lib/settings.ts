@@ -10,13 +10,13 @@ export async function showMainMenu() {
 }
 
 export function getStoragePath() {
-  const storagePath = conf.get('settings.storagePath');
+  const storagePath = conf.get('settings.defaultStoragePath');
 
   return storagePath || process.cwd();
 }
 
 export async function setStoragePath() {
-  const storagePath = await inquirer.askStoragePath();
+  const {storagePath} = await inquirer.askStoragePath();
 
   conf.set('settings.defaultStoragePath', storagePath);
 
