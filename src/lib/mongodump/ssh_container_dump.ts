@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import debug from 'debug';
+import path from 'path';
 
 import * as ssh from '../ssh';
 import * as inquirer from '../inquirer';
@@ -51,10 +52,14 @@ export default class SSHContainerDump extends Dump {
 
       const src = `${username}@${host}:${folderOnTheHost}/dump/*`;
 
+      const dumpDate = this.getDumpDate();
+
+      const dest = path.join(storagePath, dumpDate);
+
       try {
         // TODO: avoid that on local we find mongodump/dump folder
-        await rsync.exec(src, storagePath, privateKey);
-        this.setDump(storagePath, databaseName);
+        await rsync.exec(src, dest, privateKey);
+        this.setDump(storagePath, databaseName, dumpDate);
         resolve();
       } catch (err) {
         reject(err);
