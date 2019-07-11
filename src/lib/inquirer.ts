@@ -314,14 +314,17 @@ export function selectContainer(containers: string[]) {
   return inquirer.prompt(questions);
 }
 
-export function selectDump(dumps: string[]) {
+export function selectDump(dumps: Array<{name: string, path: string, createdOn: string}>) {
   const questions: Question[] = [
     {
       type: 'list',
       name: 'dump',
       message: 'From which dump?',
-      default: dumps[0],
-      choices: dumps
+      default: dumps[0].path,
+      choices: dumps.map(dump => ({
+        name: `${dump.name} ${dump.createdOn}`,
+        value: dump.path
+      }))
     }
   ];
   return inquirer.prompt(questions);
