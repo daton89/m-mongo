@@ -4,7 +4,9 @@ import debug from 'debug';
 import { Cluster, ClusterManager } from '../cluster';
 import Restore from './restore';
 import RestoreContainer from './restore_container';
-import Dump from '../mongodump/dump';
+import DumpMaker from '../mongodump/dump';
+// tslint:disable-next-line: no-duplicate-imports
+import { Dump } from '../mongodump/dump';
 import * as mainDump from '../mongodump';
 
 const dd = debug('restore:start');
@@ -13,7 +15,7 @@ export async function start() {
   // TODO: getCluster inside the Restore constructor
   const cluster: Cluster = await ClusterManager.getCluster();
 
-  const dumps: string[] = await Dump.getDumps();
+  const dumps: Dump[] = DumpMaker.getDumps();
 
   dd('dumps :: %o', dumps);
 

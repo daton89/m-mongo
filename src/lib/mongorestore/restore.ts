@@ -6,11 +6,12 @@ import { Cluster } from '../cluster';
 import * as inquirer from '../inquirer';
 import spawn from '../spawn';
 import Database from '../database/database';
+import { Dump } from '../mongodump/dump';
 
 const dd = debug('Restore');
 
 export default class Restore {
-  constructor(public cluster: Cluster, public dumps: string[]) {}
+  constructor(public cluster: Cluster, public dumps: Dump[]) {}
 
   public async exec() {
     const { dump } = await inquirer.selectDump(this.dumps);
