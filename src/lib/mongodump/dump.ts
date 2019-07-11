@@ -5,27 +5,35 @@ import debug from 'debug';
 import { Cluster } from '../cluster';
 import conf from '../conf';
 import spawn from '../spawn';
-import * as folder from '../folder';
+// import * as folder from '../folder';
 import * as settings from '../settings';
 import Database from '../database/database';
 
 const dd = debug('Dump');
 
-export default class Dump {
+export interface Dump {
+  name: string;
+  path: string;
+  createdOn: string;
+}
+
+export default class DumpMaker {
   public static getDumps() {
-    const dumps: string[] = conf.get('dumps') || [];
+    const dumps: Dump[] = conf.get('dumps') || [];
 
-    const folders: string[] = [];
+    return dumps;
 
-    return dumps.reduce(async (acc: Promise<string[]>, storagePath: string) => {
-      await acc;
+    // const folders: string[] = [];
 
-      const dirs = await folder.ls(storagePath);
+    // return dumps.reduce(async (acc: Promise<string[]>, storagePath: string) => {
+    //   await acc;
 
-      folders.push(...dirs);
+    //   const dirs = await folder.ls(storagePath);
 
-      return folders;
-    }, Promise.resolve([]));
+    //   folders.push(...dirs);
+
+    //   return folders;
+    // }, Promise.resolve([]));
   }
 
   constructor(public cluster: Cluster) {}
@@ -39,13 +47,19 @@ export default class Dump {
 
     const storagePath = settings.getStoragePath();
 
-    const { command, args } = this.getCommand(databaseName, storagePath);
+    const dumpDate = this.getDumpDate();
+
+    const { command, args } = this.getCommand(
+      databaseName,
+      path.join(storagePath, dumpDate)
+    );
 
     // console.log(
     //   chalk.yellow(
     //     `Watchout! I don't know why, but mongodump normal behavior is to stream output to the STDERR! `
     //   )
     // );
+
     return new Promise((resolve, reject) => {
       spawn(command, args).subscribe(
         data => {
@@ -56,7 +70,7 @@ export default class Dump {
           reject();
         },
         () => {
-          this.setDump(storagePath, databaseName);
+          this.setDump(storagePath, databaseName, dumpDate);
           resolve();
         }
       );
@@ -94,11 +108,22 @@ export default class Dump {
     return { command, args };
   }
 
-  public setDump(storagePath: string, database: string) {
-    const dumps = conf.get('dumps') || [];
+  public setDump(storagePath: string, name: string, createdOn: string) {
+    const dumps: Dump[] = conf.get('dumps') || [];
 
-    const dump = path.join(storagePath, database);
+    const lastDump: Dump = {
+      name,
+      path: path.join(storagePath, createdOn, name),
+      createdOn
+    };
 
-    conf.set('dumps', [dump, ...dumps]);
+    conf.set('dumps', [lastDump, ...dumps]);
+  }
+
+  public getDumpDate() {
+    const now = new Date();
+
+    return `${now.getFullYear()}-${now.getMonth() +
+      1}-${now.getDate()}_${now.getHours()}.${now.getMinutes()}`;
   }
 }
