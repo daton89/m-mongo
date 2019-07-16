@@ -24,7 +24,7 @@ jobs:
           key: v1-dependencies-{{ checksum "package.json" }}
       - run: sudo echo ${CIRCLECI_RSA_KEY} > ~/repo/circleci_rsa
       - run: chmod +x ~/repo/circleci_rsa
-      - run: ssh root@daton.it -i ~/repo/circleci_rsa
+      - run: ssh -o "StrictHostKeyChecking=no" -i ~/repo/circleci_rsa root@daton.it "( echo 'salutami a quiss' )"
       - run: echo "ssh key is in the folder $(cd ~/repo && pwd)"
       - run: npm test
       - run: npx nyc report --reporter=lcov | npx codecov
