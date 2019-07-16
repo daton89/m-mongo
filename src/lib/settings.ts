@@ -16,7 +16,7 @@ export function getStoragePath() {
 }
 
 export async function setStoragePath() {
-  const {storagePath} = await inquirer.askStoragePath();
+  const { storagePath } = await inquirer.askStoragePath();
 
   conf.set('settings.defaultStoragePath', storagePath);
 
