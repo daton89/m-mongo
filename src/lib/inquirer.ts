@@ -315,9 +315,7 @@ export function selectContainer(containers: string[]) {
   return inquirer.prompt(questions);
 }
 
-export function selectDump(
-  dumps: Dump[]
-) {
+export function selectDump(dumps: Dump[]) {
   const questions: Question[] = [
     {
       type: 'list',
