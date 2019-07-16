@@ -1,5 +1,7 @@
 # m-mongo
 
+[![CircleCI](https://circleci.com/gh/daton89/m-mongo.svg?style=svg)](https://circleci.com/gh/daton89/m-mongo)
+
 MongoDB migration command line tools for dump restore export and import databases
 
 ## Requirements
