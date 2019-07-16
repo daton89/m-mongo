@@ -17,11 +17,11 @@ Then if you need to access MongoDb into a Remote Machine, make sure you have set
 
 ## Introduction
 
-Bored to dump, restore or copy collections between different environments? 
+Bored to dump, restore or copy collections between different environments?
 
 `m-mongo` is here to help with these frequent operations.
 
-Let's start by installing it: 
+Let's start by installing it:
 
 ```sh
 npm i -g m-mongo
@@ -31,15 +31,25 @@ yarn global install m-mongo
 
 Now open a terminal or prompt and type `m-mongo`.
 
-You can set up a default folder where dumps are stored, otherwise the dump files will be stored in the current folder.
+![start m-mongo](https://i.imgur.com/V0bTIY6.gif)
 
-Then we need to add at least one cluster.
+We can set up an optional folder where dumps are stored, otherwise by default the dump files will be stored in the current folder.
+
+![set default storage path](https://i.imgur.com/rSh8pML.gif)
+
+We can now add a cluster.
+
+![add a cluster](https://i.imgur.com/cdKi7gA.gif)
 
 All the information that you are inserting, are stored in a json file under `~/.config/configstore/m-mongo.json`.
 
 Now we can make a dump.
 
+![make a dump](https://i.imgur.com/fYMwoiG.gif)
+
 Finally we can restore the dump.
+
+![restore a dump](https://i.imgur.com/EYIwLca.gif)
 
 ## Other Informations
 
