@@ -1,3 +1,4 @@
+import { Dump } from './mongodump/dump';
 import inquirer, { Question } from 'inquirer';
 import chalk from 'chalk';
 import path from 'path';
@@ -314,7 +315,9 @@ export function selectContainer(containers: string[]) {
   return inquirer.prompt(questions);
 }
 
-export function selectDump(dumps: Array<{name: string, path: string, createdOn: string}>) {
+export function selectDump(
+  dumps: Dump[]
+) {
   const questions: Question[] = [
     {
       type: 'list',
