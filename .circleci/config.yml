@@ -22,13 +22,13 @@ jobs:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
-      - run: sudo echo ${CIRCLECI_RSA_KEY} > ~/repo/circleci_rsa
-      - run: chmod +x ~/repo/circleci_rsa
-      - run: ssh -o "StrictHostKeyChecking=no" -i ~/repo/circleci_rsa root@daton.it "( echo 'salutami a quiss' )"
-      - run: echo "ssh key is in the folder $(cd ~/repo && pwd)"
+      # - run: sudo echo ${CIRCLECI_RSA_KEY} > ~/repo/circleci_rsa
+      # - run: chmod +x ~/repo/circleci_rsa
+      # - run: ssh -o "StrictHostKeyChecking=no" -i ~/repo/circleci_rsa root@daton.it "( echo 'salutami a quiss' )"
+      # - run: echo "ssh key is in the folder $(cd ~/repo && pwd)"
       - run: npm test
-      - run: npx nyc report --reporter=lcov | npx codecov
-      - run: npm run cov:check
+      # - run: npx nyc report --reporter=lcov | npx codecov
+      # - run: npm run cov:check
       - persist_to_workspace:
           root: ~/repo
           paths:
@@ -52,8 +52,8 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
       - run: npm test
-      - run: npx nyc report --reporter=lcov | npx codecov
-      - run: npm run cov:check
+      # - run: npx nyc report --reporter=lcov | npx codecov
+      # - run: npm run cov:check
 
   'node-latest':
     <<: *defaults
@@ -71,8 +71,8 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
       - run: npm test
-      - run: npx nyc report --reporter=lcov | npx codecov
-      - run: npm run cov:check
+      # - run: npx nyc report --reporter=lcov | npx codecov
+      # - run: npm run cov:check
 
   deploy:
     <<: *defaults
