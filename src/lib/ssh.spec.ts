@@ -1,18 +1,21 @@
 import test from 'ava';
-import conf from './conf';
 import { connect, exec, end } from './ssh';
 
 test('ssh', t => {
   t.plan(1);
 
   return new Promise(async resolve => {
-    const connections = conf.get('sshConnections');
+    const connection = {
+      host: 'daton.it',
+      port: 22,
+      username: 'root',
+      privateKey: process.env.PRIVATE_KEY || 'C:\\Users\\tonyd\\.ssh\\daton.it'
+    };
 
-    await connect(connections[0]);
-
-    console.log('connected');
+    await connect(connection);
 
     const command = 'echo yes';
+
     exec(command).subscribe(
       stout => {
         console.log('stout', stout);
@@ -26,7 +29,6 @@ test('ssh', t => {
       async () => {
         console.log('ended');
         await end();
-        // t.pass();
       }
     );
   });
