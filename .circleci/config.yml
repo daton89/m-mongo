@@ -22,6 +22,10 @@ jobs:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
+      - run: echo ${CIRCLECI_RSA_KEY} > ${pwd}/circleci_rsa
+      - run: echo "ssh key in the file ${pwd}/circleci_rsa"
+      - run: echo "pwd is => ${pwd}"
+      - run: ls -la ~/.ssh/
       - run: npm test
       - run: npx nyc report --reporter=lcov | npx codecov
       - run: npm run cov:check
