@@ -12,6 +12,8 @@ test('ssh', t => {
       privateKey: process.env.PRIVATE_KEY || 'C:\\Users\\tonyd\\.ssh\\daton.it'
     };
 
+    console.log('connection =>', connection);
+
     await connect(connection);
 
     const command = 'echo yes';
