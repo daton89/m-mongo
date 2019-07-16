@@ -13,13 +13,11 @@ export async function start() {
     await dump.exec();
   }
 
-  if (cluster.runningOn === 'Cloud Provider') {
+  if (
+    cluster.runningOn === 'Cloud Provider' ||
+    cluster.runningOn === 'Localhost'
+  ) {
     const restore = new Dump(cluster);
     await restore.exec();
   }
-
-  // if (cluster.runningOn === 'Localhost') {
-  //   const restore = new Dump(cluster);
-  //   await restore.exec();
-  // }
 }
