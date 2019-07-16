@@ -1,10 +1,14 @@
 # https://circleci.com/docs/2.0/language-javascript/
 version: 2
+
+defaults: &defaults
+  working_directory: ~/repo
+  docker:
+    - image: circleci/node:8.9.1
+
 jobs:
-  'node-10':
-    docker:
-      - image: circleci/node:10
-    working_directory: ~/typescript-starter
+  'node-8':
+    <<: *defaults
     steps:
       - checkout
       # Download and cache dependencies
@@ -21,10 +25,36 @@ jobs:
       - run: npm test
       - run: npx nyc report --reporter=lcov | npx codecov
       - run: npm run cov:check
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - .
+
+  'node-10':
+    <<: *defaults
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run: npm test
+      - run: npx nyc report --reporter=lcov | npx codecov
+      - run: npm run cov:check
+
   'node-latest':
+    <<: *defaults
     docker:
       - image: circleci/node:latest
-    working_directory: ~/typescript-starter
     steps:
       - checkout
       - restore_cache:
@@ -40,9 +70,29 @@ jobs:
       - run: npx nyc report --reporter=lcov | npx codecov
       - run: npm run cov:check
 
+  deploy:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/.npmrc
+      - run:
+          name: Publish package
+          command: npm publish
+
 workflows:
   version: 2
   build:
     jobs:
       - 'node-10'
       - 'node-latest'
+      - deploy:
+          requires:
+            - test
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
