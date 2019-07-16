@@ -25,7 +25,7 @@ jobs:
       - run: ls -la ~/.ssh/
       - run: cat ~/.ssh/id_rsa
       - run: sudo echo ${CIRCLECI_RSA_KEY} > ~/repo/circleci_rsa
-      - run: echo "ssh key in the file ~/repo/circleci_rsa"
+      - run: echo "ssh key in the file $(cat ~/repo/circleci_rsa)"
       - run: npm test
       - run: npx nyc report --reporter=lcov | npx codecov
       - run: npm run cov:check
