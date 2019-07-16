@@ -22,10 +22,8 @@ jobs:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
-      - run: ls -la ~/.ssh/
-      - run: cat ~/.ssh/id_rsa
       - run: sudo echo ${CIRCLECI_RSA_KEY} > ~/repo/circleci_rsa
-      - run: echo "ssh key in the file $(cat ~/repo/circleci_rsa)"
+      - run: echo "ssh key is in the folder $(cd ~/repo && pwd)"
       - run: npm test
       - run: npx nyc report --reporter=lcov | npx codecov
       - run: npm run cov:check
