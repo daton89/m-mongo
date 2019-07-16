@@ -33,6 +33,10 @@ console.log(
 //   process.exit();
 // }
 
+  // We need the mongodump bin into our path
+  // TODO: check mongobump bin availability otherwise download it
+  // https://www.mongodb.com/download-center/community
+
 const run = async () => {
   try {
     const choise = await settings.showMainMenu();
