@@ -118,6 +118,6 @@
     ]
   },
   "bin": {
-    "m-mongo": "./build/main/index.js"
+    "m-mongo": "./bin/index.js"
   }
 }
