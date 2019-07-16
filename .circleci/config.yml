@@ -90,7 +90,9 @@ workflows:
       - 'node-latest'
       - deploy:
           requires:
-            - test
+            - 'node-8'
+            - 'node-10'
+            - 'node-latest'
           filters:
             tags:
               only: /^v.*/
