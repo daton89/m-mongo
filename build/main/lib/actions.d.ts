@@ -1,0 +1,12 @@
+export declare const ADD_SSH_CONNECTION = "Add SSH connection";
+export declare const RUN_SSH_COMMAND = "Run a command remotely";
+export declare const SET_STORAGE_PATH = "Set the default storage directory";
+export declare const SHOW_CLUSTERS = "Show clusters";
+export declare const ADD_CLUSTER = "Add a cluster";
+export declare const REMOVE_CLUSTER = "Remove a cluster";
+export declare const DUMP = "Dump";
+export declare const DUMP_OVER_SSH = "Dump over ssh";
+export declare const RESTORE = "Restore";
+export declare const EXPORT = "Export";
+export declare const IMPORT = "Import";
+export declare const EXIT = "Exit";
