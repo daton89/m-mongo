@@ -91,9 +91,9 @@ workflows:
   build:
     jobs:
       - 'node-8':
-          filters:
+          filters:  # required since `deploy` has tag filters AND requires `build`
             tags:
-              only: /^v.*/
+              only: /.*/
       - deploy:
           requires:
             - 'node-8'
