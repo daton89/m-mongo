@@ -94,6 +94,8 @@ workflows:
           filters:
             tags:
               only: /^v.*/
+            branches:
+              ignore: /.*/
       - deploy:
           requires:
             - 'node-8'
