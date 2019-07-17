@@ -94,19 +94,9 @@ workflows:
           filters:
             tags:
               only: /^v.*/
-      - 'node-10':
-          filters:
-            tags:
-              only: /^v.*/
-      - 'node-latest':
-          filters:
-            tags:
-              only: /^v.*/
       - deploy:
           requires:
             - 'node-8'
-            - 'node-10'
-            - 'node-latest'
           filters:
             tags:
               only: /^v.*/
