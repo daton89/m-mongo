@@ -4,9 +4,8 @@ import debug from 'debug';
 import { Cluster, ClusterManager } from '../cluster';
 import Restore from './restore';
 import RestoreContainer from './restore_container';
-import DumpMaker from '../mongodump/dump';
-// tslint:disable-next-line: no-duplicate-imports
-import { Dump } from '../mongodump/dump';
+
+import { DumpMaker, Dump } from '../mongodump/dump';
 import * as mainDump from '../mongodump';
 
 const dd = debug('restore:start');

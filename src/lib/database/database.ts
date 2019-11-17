@@ -15,7 +15,9 @@ export default class Database {
 
     return database;
   }
+
   constructor(public cluster: Cluster) {}
+
   public listDatabases(): Promise<string[]> {
     const status = new Spinner('Connecting to the cluster..., please wait...');
     status.start();

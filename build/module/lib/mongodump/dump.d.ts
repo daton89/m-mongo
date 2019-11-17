@@ -4,7 +4,7 @@ export interface Dump {
     path: string;
     createdOn: string;
 }
-export default class DumpMaker {
+export declare class DumpMaker {
     cluster: Cluster;
     static getDumps(): Dump[];
     constructor(cluster: Cluster);

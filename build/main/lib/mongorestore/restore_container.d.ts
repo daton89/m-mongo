@@ -1,7 +1,6 @@
 import Restore from './restore';
 export default class RestoreContainer extends Restore {
-    exec(): Promise<void>;
+    exec(): Promise<unknown>;
     private connect;
-    private sshDocker;
-    private spawnDocker;
+    private sshDockerCp;
 }

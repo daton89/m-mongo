@@ -26,9 +26,9 @@ Bored to dump, restore or copy collections between different environments?
 Let's start by installing it:
 
 ```sh
-npm i -g m-mongo
+npm i -g @tonillo/m-mongo
 # or with yarn
-yarn global install m-mongo
+yarn global install @tonillo/m-mongo
 ```
 
 Now open a terminal or prompt and type `m-mongo`.
@@ -52,6 +52,12 @@ Now we can make a dump.
 Finally we can restore the dump.
 
 ![restore a dump](https://i.imgur.com/EYIwLca.gif)
+
+## Debug
+
+```sh
+export DEBUG='*'
+```
 
 ## Other Informations
 

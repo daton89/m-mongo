@@ -1,8 +1,10 @@
 import debug from 'debug';
+import chalk from 'chalk';
 
 import * as inquirer from '../inquirer';
 import Restore from './restore';
 import * as ssh from '../ssh';
+import * as rsync from '../rsync';
 import spawn from '../spawn';
 import SSHContainerDatabase from '../database/ssh_container_database';
 
@@ -11,6 +13,8 @@ const dd = debug('RestoreContainer');
 export default class RestoreContainer extends Restore {
   public async exec() {
     const { dump } = await inquirer.selectDump(this.dumps);
+
+    const dumpObject = this.dumps.find(el => el.path === dump) || { name: '' };
 
     const { requiresSSH } = this.cluster;
 
@@ -39,20 +43,73 @@ export default class RestoreContainer extends Restore {
       drop
     } = await inquirer.askRestoreOptions(databaseList);
 
-    const { command, args } = await this.getCommand(
-      databaseName,
-      dump,
-      collectionName,
-      drop
-    );
-
-    const dockerExec = ['docker', 'exec', containerName, command, ...args];
-
     if (requiresSSH === 'Yes') {
-      await this.sshDocker(dockerExec.join(' '));
+      if (!this.cluster.sshConnection) throw new Error('SSH Tunnel not found!');
+
+      // copy dumped files from localhost to remote machine with rsync
+      const { username, host, privateKey } = this.cluster.sshConnection;
+
+      const dest = `${username}@${host}:~/data-db/mongodumps/dump/`;
+
+      await rsync.exec(dump, dest, privateKey);
+
+      console.log(chalk.green(`Copied files from ${dump} to ${dest}`));
+
+      // copy dump into container
+      await this.sshDockerCp(
+        `~/data-db/mongodumps/dump/${dumpObject.name}`,
+        `${containerName}:/home/${dumpObject.name}`
+      );
+
+      console.log(chalk.green(`Copied files into container ${containerName}`));
+
+      // build command and execute
+      const { command, args } = this.getCommand(
+        databaseName,
+        `/home/${dumpObject.name}`,
+        collectionName,
+        drop
+      );
+
+      const dockerExec = ['docker', 'exec', containerName, command, ...args];
+
+      return new Promise(resolve => {
+        ssh.exec(dockerExec.join(' ')).subscribe(
+          data => {
+            dd(`STDOUT: ${data}`);
+          },
+          data => {
+            dd(`STDERR: ${data}`);
+          },
+          async () => {
+            resolve();
+          }
+        );
+      });
     } else {
-      const [dockerCommand, ...dockerArgs] = dockerExec;
-      await this.spawnDocker(dockerCommand, dockerArgs);
+      const { command, args } = this.getCommand(
+        databaseName,
+        dump,
+        collectionName,
+        drop
+      );
+
+      const dockerArgs = ['exec', containerName, command, ...args];
+
+      // using docker in local
+      return new Promise(resolve => {
+        spawn('docker', dockerArgs).subscribe(
+          data => {
+            dd(`STDOUT: ${data}`);
+          },
+          data => {
+            dd(`STDERR: ${data}`);
+          },
+          async () => {
+            resolve();
+          }
+        );
+      });
     }
   }
 
@@ -61,32 +118,17 @@ export default class RestoreContainer extends Restore {
     await ssh.connect(this.cluster.sshConnection);
   }
 
-  private sshDocker(command: string) {
+  // copy dumped files from host to container
+  private sshDockerCp(src: string, dest: string) {
     return new Promise(resolve => {
-      // using docker in remote
+      const command = `docker cp ${src} ${dest}`;
+      dd('sshDockerCp %o', command);
       ssh.exec(command).subscribe(
         data => {
-          dd(`STDOUT: ${data}`);
+          dd('dockerCp %s', `STDOUT: ${data}`);
         },
         data => {
-          dd(`STDERR: ${data}`);
-        },
-        async () => {
-          resolve();
-        }
-      );
-    });
-  }
-
-  private spawnDocker(command: string, args: string[]) {
-    return new Promise(resolve => {
-      // using docker in local
-      spawn(command, args).subscribe(
-        data => {
-          dd(`STDOUT: ${data}`);
-        },
-        data => {
-          dd(`STDERR: ${data}`);
+          console.log(chalk.red(`dockerCp STDERR: ${data}`));
         },
         async () => {
           resolve();

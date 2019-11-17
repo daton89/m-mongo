@@ -6,13 +6,13 @@ import * as ssh from '../ssh';
 import * as inquirer from '../inquirer';
 import * as rsync from '../rsync';
 import * as settings from '../settings';
-import Dump from './dump';
+import { DumpMaker } from './dump';
 import Database from '../database/database';
 import SSHContainerDatabase from '../database/ssh_container_database';
 
 const dd = debug('SSHContainerDump');
 
-export default class SSHContainerDump extends Dump {
+export default class SSHContainerDump extends DumpMaker {
   public async exec(): Promise<void> {
     // const { sshConnection } = this.cluster;
 

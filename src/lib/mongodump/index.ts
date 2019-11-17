@@ -1,5 +1,5 @@
 import { Cluster, ClusterManager } from '../cluster';
-import Dump from './dump';
+import { DumpMaker } from './dump';
 import SSHContainerDump from './ssh_container_dump';
 
 export async function start() {
@@ -17,7 +17,7 @@ export async function start() {
     cluster.runningOn === 'Cloud Provider' ||
     cluster.runningOn === 'Localhost'
   ) {
-    const restore = new Dump(cluster);
+    const restore = new DumpMaker(cluster);
     await restore.exec();
   }
 }

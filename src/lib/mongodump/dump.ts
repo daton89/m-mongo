@@ -17,7 +17,7 @@ export interface Dump {
   createdOn: string;
 }
 
-export default class DumpMaker {
+export class DumpMaker {
   public static getDumps() {
     const dumps: Dump[] = conf.get('dumps') || [];
 
