@@ -4,40 +4,33 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const ava_1 = __importDefault(require("ava"));
-const ssh_1 = require("./ssh");
-// test('ssh', t => {
-//   t.plan(1);
-//   return new Promise(async resolve => {
-//     const connection = {
-//       host: 'daton.it',
-//       port: 22,
-//       username: 'root',
-//       privateKey: process.env.PRIVATE_KEY || 'C:\\Users\\tonyd\\.ssh\\daton.it'
-//     };
-//     console.log('connection =>', connection);
-//     await connect(connection);
-//     const command = 'echo yes';
-//     exec(command).subscribe(
-//       stout => {
-//         console.log('stout', stout);
-//         t.regex(stout, new RegExp('yes'));
-//         resolve();
-//       },
-//       err => {
-//         console.log('err', err);
-//         t.fail(err);
-//       },
-//       async () => {
-//         console.log('ended');
-//         await end();
-//       }
-//     );
-//   });
-// });
-ava_1.default('ssh', t => {
-    t.plan(3);
-    t.is(typeof ssh_1.connect, 'function');
-    t.is(typeof ssh_1.exec, 'function');
-    t.is(typeof ssh_1.end, 'function');
+const events_1 = __importDefault(require("events"));
+const proxyquire_1 = __importDefault(require("proxyquire"));
+const sinon_1 = __importDefault(require("sinon"));
+const readFileSyncStub = sinon_1.default.spy();
+const ssh = proxyquire_1.default('./ssh', {
+    ssh2: {
+        Client: class Client extends events_1.default {
+            connect() {
+                process.nextTick(() => {
+                    this.emit('ready');
+                });
+            }
+        }
+    },
+    fs: {
+        readFileSync: readFileSyncStub
+    }
 });
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoic3NoLnNwZWMuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi9zcmMvbGliL3NzaC5zcGVjLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7O0FBQUEsOENBQXVCO0FBQ3ZCLCtCQUEyQztBQUUzQyxxQkFBcUI7QUFDckIsZUFBZTtBQUVmLDBDQUEwQztBQUMxQywyQkFBMkI7QUFDM0IsMEJBQTBCO0FBQzFCLGtCQUFrQjtBQUNsQiwwQkFBMEI7QUFDMUIsa0ZBQWtGO0FBQ2xGLFNBQVM7QUFFVCxnREFBZ0Q7QUFFaEQsaUNBQWlDO0FBRWpDLGtDQUFrQztBQUVsQywrQkFBK0I7QUFDL0IsbUJBQW1CO0FBQ25CLHVDQUF1QztBQUN2Qyw2Q0FBNkM7QUFDN0MscUJBQXFCO0FBQ3JCLFdBQVc7QUFDWCxpQkFBaUI7QUFDakIsbUNBQW1DO0FBQ25DLHVCQUF1QjtBQUN2QixXQUFXO0FBQ1gsc0JBQXNCO0FBQ3RCLGdDQUFnQztBQUNoQyx1QkFBdUI7QUFDdkIsVUFBVTtBQUNWLFNBQVM7QUFDVCxRQUFRO0FBQ1IsTUFBTTtBQUVOLGFBQUksQ0FBQyxLQUFLLEVBQUUsQ0FBQyxDQUFDLEVBQUU7SUFDZCxDQUFDLENBQUMsSUFBSSxDQUFDLENBQUMsQ0FBQyxDQUFDO0lBRVYsQ0FBQyxDQUFDLEVBQUUsQ0FBQyxPQUFPLGFBQU8sRUFBRSxVQUFVLENBQUMsQ0FBQztJQUNqQyxDQUFDLENBQUMsRUFBRSxDQUFDLE9BQU8sVUFBSSxFQUFFLFVBQVUsQ0FBQyxDQUFDO0lBQzlCLENBQUMsQ0FBQyxFQUFFLENBQUMsT0FBTyxTQUFHLEVBQUUsVUFBVSxDQUFDLENBQUM7QUFDL0IsQ0FBQyxDQUFDLENBQUMifQ==
+const connectionParams = {
+    host: 'my.host.net',
+    port: 22,
+    username: 'root',
+    privateKey: `${__dirname}/ssh.spec.ts`
+};
+ava_1.default('ssh connect', async (t) => {
+    t.plan(1);
+    await ssh.connect(connectionParams);
+    t.true(readFileSyncStub.called);
+});
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoic3NoLnNwZWMuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi9zcmMvbGliL3NzaC5zcGVjLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7O0FBQUEsOENBQXVCO0FBQ3ZCLG9EQUFrQztBQUNsQyw0REFBb0M7QUFDcEMsa0RBQTBCO0FBRTFCLE1BQU0sZ0JBQWdCLEdBQUcsZUFBSyxDQUFDLEdBQUcsRUFBRSxDQUFDO0FBRXJDLE1BQU0sR0FBRyxHQUFHLG9CQUFVLENBQUMsT0FBTyxFQUFFO0lBQzlCLElBQUksRUFBRTtRQUNKLE1BQU0sRUFBRSxNQUFNLE1BQU8sU0FBUSxnQkFBWTtZQUNoQyxPQUFPO2dCQUNaLE9BQU8sQ0FBQyxRQUFRLENBQUMsR0FBRyxFQUFFO29CQUNwQixJQUFJLENBQUMsSUFBSSxDQUFDLE9BQU8sQ0FBQyxDQUFDO2dCQUNyQixDQUFDLENBQUMsQ0FBQztZQUNMLENBQUM7U0FDRjtLQUNGO0lBQ0QsRUFBRSxFQUFFO1FBQ0YsWUFBWSxFQUFFLGdCQUFnQjtLQUMvQjtDQUNGLENBQUMsQ0FBQztBQUVILE1BQU0sZ0JBQWdCLEdBQUc7SUFDdkIsSUFBSSxFQUFFLGFBQWE7SUFDbkIsSUFBSSxFQUFFLEVBQUU7SUFDUixRQUFRLEVBQUUsTUFBTTtJQUNoQixVQUFVLEVBQUUsR0FBRyxTQUFTLGNBQWM7Q0FDdkMsQ0FBQztBQUVGLGFBQUksQ0FBQyxhQUFhLEVBQUUsS0FBSyxFQUFDLENBQUMsRUFBQyxFQUFFO0lBQzVCLENBQUMsQ0FBQyxJQUFJLENBQUMsQ0FBQyxDQUFDLENBQUM7SUFDVixNQUFNLEdBQUcsQ0FBQyxPQUFPLENBQUMsZ0JBQWdCLENBQUMsQ0FBQztJQUNwQyxDQUFDLENBQUMsSUFBSSxDQUFDLGdCQUFnQixDQUFDLE1BQU0sQ0FBQyxDQUFDO0FBQ2xDLENBQUMsQ0FBQyxDQUFDIn0=

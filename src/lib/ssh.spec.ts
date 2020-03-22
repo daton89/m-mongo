@@ -1,45 +1,34 @@
 import test from 'ava';
-import { connect, exec, end } from './ssh';
+import EventEmitter from 'events';
+import proxyquire from 'proxyquire';
+import sinon from 'sinon';
 
-// test('ssh', t => {
-//   t.plan(1);
+const readFileSyncStub = sinon.spy();
 
-//   return new Promise(async resolve => {
-//     const connection = {
-//       host: 'daton.it',
-//       port: 22,
-//       username: 'root',
-//       privateKey: process.env.PRIVATE_KEY || 'C:\\Users\\tonyd\\.ssh\\daton.it'
-//     };
+const ssh = proxyquire('./ssh', {
+  ssh2: {
+    Client: class Client extends EventEmitter {
+      public connect() {
+        process.nextTick(() => {
+          this.emit('ready');
+        });
+      }
+    }
+  },
+  fs: {
+    readFileSync: readFileSyncStub
+  }
+});
 
-//     console.log('connection =>', connection);
+const connectionParams = {
+  host: 'my.host.net',
+  port: 22,
+  username: 'root',
+  privateKey: `${__dirname}/ssh.spec.ts`
+};
 
-//     await connect(connection);
-
-//     const command = 'echo yes';
-
-//     exec(command).subscribe(
-//       stout => {
-//         console.log('stout', stout);
-//         t.regex(stout, new RegExp('yes'));
-//         resolve();
-//       },
-//       err => {
-//         console.log('err', err);
-//         t.fail(err);
-//       },
-//       async () => {
-//         console.log('ended');
-//         await end();
-//       }
-//     );
-//   });
-// });
-
-test('ssh', t => {
-  t.plan(3);
-
-  t.is(typeof connect, 'function');
-  t.is(typeof exec, 'function');
-  t.is(typeof end, 'function');
+test('ssh connect', async t => {
+  t.plan(1);
+  await ssh.connect(connectionParams);
+  t.true(readFileSyncStub.called);
 });
