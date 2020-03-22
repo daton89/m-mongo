@@ -289,6 +289,18 @@ export function askDatabase() {
   return inquirer.prompt(questions);
 }
 
+export function askCollectionNameToDump() {
+  const questions: Question[] = [
+    {
+      type: 'input',
+      name: 'collectionName',
+      message:
+        'Do you want to dump a specific collection? leave empty for dump all collections'
+    }
+  ];
+  return inquirer.prompt(questions);
+}
+
 export function askRestartOrExit() {
   const questions: Question[] = [
     {

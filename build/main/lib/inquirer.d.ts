@@ -31,6 +31,9 @@ export declare function askContainerName(): Promise<Record<string, any>> & {
 export declare function askDatabase(): Promise<Record<string, any>> & {
     ui: inquirer.ui.PromptUI;
 };
+export declare function askCollectionNameToDump(): Promise<Record<string, any>> & {
+    ui: inquirer.ui.PromptUI;
+};
 export declare function askRestartOrExit(): Promise<Record<string, any>> & {
     ui: inquirer.ui.PromptUI;
 };

@@ -5,7 +5,7 @@ import debug from 'debug';
 import { Cluster } from '../cluster';
 import conf from '../conf';
 import spawn from '../spawn';
-// import * as folder from '../folder';
+import * as inquirer from '../inquirer';
 import * as settings from '../settings';
 import Database from '../database/database';
 
@@ -49,9 +49,12 @@ export class DumpMaker {
 
     const dumpDate = this.getDumpDate();
 
+    const { collectionName } = await inquirer.askCollectionNameToDump();
+
     const { command, args } = this.getCommand(
       databaseName,
-      path.join(storagePath, dumpDate)
+      path.join(storagePath, dumpDate),
+      collectionName
     );
 
     // console.log(
@@ -77,7 +80,11 @@ export class DumpMaker {
     });
   }
 
-  public getCommand(database: string, storagePath: string) {
+  public getCommand(
+    database: string,
+    storagePath: string,
+    collectionName?: string
+  ) {
     const command = 'mongodump';
 
     const {
@@ -100,7 +107,8 @@ export class DumpMaker {
       authenticationDatabase ? `${authenticationDatabase}` : '',
       database ? `--db` : '',
       database ? `${database}` : '',
-      // TODO: add optional collection
+      collectionName ? `-c` : '',
+      collectionName ? `${collectionName}` : '',
       storagePath ? `--out` : '',
       storagePath ? `${storagePath}` : ''
     ];

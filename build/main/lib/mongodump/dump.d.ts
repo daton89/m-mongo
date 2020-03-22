@@ -9,7 +9,7 @@ export declare class DumpMaker {
     static getDumps(): Dump[];
     constructor(cluster: Cluster);
     exec(): Promise<unknown>;
-    getCommand(database: string, storagePath: string): {
+    getCommand(database: string, storagePath: string, collectionName?: string): {
         command: string;
         args: string[];
     };
